@@ -5,7 +5,7 @@ You will get two free HTTPS addresses:
 | What | Service | Address looks like |
 |---|---|---|
 | Interactive dashboard | Streamlit Community Cloud | `https://dan-cake-analytics.streamlit.app` |
-| Project website (+ PDF report) | GitHub Pages | `https://YOUR-USER.github.io/dan-cake-analytics` |
+| Project website (+ PDF report) | GitHub Pages | `https://sumon-cse83.github.io/dan-cake-analytics` |
 
 Both are free forever for public projects. A paid custom domain (e.g. `dancake-analytics.com`, about USD 10/year)
 can be attached later. See step 5.
@@ -20,7 +20,7 @@ git init
 git add .
 git commit -m "Dan Cake analytics framework"
 git branch -M main
-git remote add origin https://github.com/YOUR-USER/dan-cake-analytics.git
+git remote add origin https://github.com/sumon-cse83/dan-cake-analytics.git
 git push -u origin main
 ```
 
@@ -31,7 +31,7 @@ git push -u origin main
 
 1. Go to https://share.streamlit.io and sign in with GitHub.
 2. Click **Create app → Deploy a public app from GitHub**.
-3. Repository `YOUR-USER/dan-cake-analytics`, branch `main`, main file path `dashboard/app.py`.
+3. Repository `sumon-cse83/dan-cake-analytics`, branch `main`, main file path `dashboard/app.py`.
 4. *Advanced settings → Python version*: 3.12 or newer.
 5. Optionally choose a custom sub-domain, e.g. `dan-cake-analytics`, then click **Deploy**.
 
@@ -43,14 +43,14 @@ The app reads `dashboard/requirements.txt` (small: pandas, numpy, plotly, stream
 
 ```powershell
 cd src
-python -m dancake.website --dashboard-url https://dan-cake-analytics.streamlit.app --repo-url https://github.com/YOUR-USER/dan-cake-analytics
+python -m dancake.website --dashboard-url https://dan-cake-analytics.streamlit.app --repo-url https://github.com/sumon-cse83/dan-cake-analytics
 cd ..
 copy report\main.pdf docs\report.pdf
 git add docs; git commit -m "website"; git push
 ```
 
 2. On GitHub: **Settings → Pages → Build and deployment → Deploy from a branch → `main` / `/docs` → Save**.
-3. After 1–2 minutes the site is live at `https://YOUR-USER.github.io/dan-cake-analytics`.
+3. After 1–2 minutes the site is live at `https://sumon-cse83.github.io/dan-cake-analytics`.
 
 ## 4. Updating after new data
 
@@ -64,6 +64,6 @@ Streamlit Cloud and GitHub Pages redeploy automatically on every push.
 
 ## 5. (Optional) Own domain name
 
-Buy a domain from any registrar. In its DNS settings add a `CNAME` record `www → YOUR-USER.github.io`.
+Buy a domain from any registrar. In its DNS settings add a `CNAME` record `www → sumon-cse83.github.io`.
 Then, in GitHub **Settings → Pages → Custom domain**, enter `www.your-domain.com` and tick **Enforce HTTPS**.
 Free alternatives such as `*.github.io`, `*.streamlit.app`, `*.netlify.app` and `*.pages.dev` need no purchase.
