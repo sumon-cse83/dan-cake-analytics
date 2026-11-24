@@ -112,7 +112,7 @@ document.getElementById('ins').innerHTML = D.ins.map(i=>`<div class="ins"><small
 </body></html>"""
 
 
-def build(dashboard_url="https://YOUR-APP.streamlit.app", repo_url="https://github.com/sumon-cse83/dan-cake-analytics"):
+def build(dashboard_url="https://dan-cake-analytics.streamlit.app", repo_url="https://github.com/sumon-cse83/dan-cake-analytics"):
     e, f, c, ins, q = (load_json(n) for n in ["eda", "forecasting", "classification", "insights", "data_quality"])
     cube = pd.read_parquet(C.DASHBOARD_DATA / "cube_monthly.parquet")
     m = cube.groupby("month").net.sum() / 1e6
@@ -160,7 +160,7 @@ def build(dashboard_url="https://YOUR-APP.streamlit.app", repo_url="https://gith
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dashboard-url", default="https://YOUR-APP.streamlit.app")
+    ap.add_argument("--dashboard-url", default="https://dan-cake-analytics.streamlit.app")
     ap.add_argument("--repo-url", default="https://github.com/sumon-cse83/dan-cake-analytics")
     a = ap.parse_args()
     build(a.dashboard_url, a.repo_url)
