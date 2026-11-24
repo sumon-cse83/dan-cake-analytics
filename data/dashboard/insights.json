@@ -1,0 +1,62 @@
+[
+  {
+    "area": "Growth",
+    "type": "What happened",
+    "insight": "Net sales grew from 2020 to 2025 at 16.6% a year, but units grew only 5.0% a year; on average 11.3 percentage points of annual growth came from higher prices and mix, 5.0 from volume.",
+    "recommendation": "Track volume growth as a separate KPI; price-led growth is not sustainable indefinitely."
+  },
+  {
+    "area": "Pricing",
+    "type": "Why it happened",
+    "insight": "After controlling for product, year and season, the estimated price elasticity of demand is +0.09 (95% CI -0.28 to +0.46), i.e. not significantly different from zero. Discounts show no relationship with order size (Spearman rho = 0.001).",
+    "recommendation": "Review the discount budget (BDT 7.7 million over the period): discounts do not appear to buy volume."
+  },
+  {
+    "area": "Seasonality",
+    "type": "What happened",
+    "insight": "December is the peak month (index 125, average month = 100) and February the weakest (86). The seasonal effect is statistically strong (Kruskal-Wallis p < 0.001).",
+    "recommendation": "Build stock and distributor capacity from October; schedule promotions and maintenance in February."
+  },
+  {
+    "area": "Portfolio",
+    "type": "What happened",
+    "insight": "Muffin is the largest category (22.4% of sales); the top 10 of 52 products deliver 38.5% of revenue and 27 products form the 'A' class (80% of sales).",
+    "recommendation": "Protect availability of A-class products first; review C-class products for rationalisation or repositioning."
+  },
+  {
+    "area": "Portfolio",
+    "type": "Segmentation",
+    "insight": "Clustering finds 5 product segments; 'Premium & gift packs' grows fastest (+7.8% units a year, 33.3% of sales).",
+    "recommendation": "Prioritise shelf space and marketing for 'Premium & gift packs'."
+  },
+  {
+    "area": "Market",
+    "type": "What happened",
+    "insight": "Dhaka alone generates 43.9% of sales and Dhaka plus Chattogram 58.3%. General Trade is the largest channel (45.6%), while E-commerce is 5.9%.",
+    "recommendation": "Reduce concentration risk by developing secondary cities and scaling E-commerce, which grows from a small base."
+  },
+  {
+    "area": "Market",
+    "type": "Segmentation",
+    "insight": "The 'Emerging high-growth cells' segment (19 region-channel-customer cells, mainly Cumilla, Khulna, Mymensingh) is growing at +33.2% a year, the fastest of the 4 market segments.",
+    "recommendation": "Allocate field-sales and digital-marketing effort to these emerging cells."
+  },
+  {
+    "area": "Orders",
+    "type": "Prediction",
+    "insight": "Whether an order will be large (>= 10 units) is moderately predictable (best ROC-AUC 0.712, Logistic Regression); channel is by far the strongest driver: 48% of distributor orders are large versus 8% online.",
+    "recommendation": "Use the large-order score for delivery-vehicle and stock allocation, mainly at channel level."
+  },
+  {
+    "area": "Forecast",
+    "type": "What will happen",
+    "insight": "The Support Vector Regression model forecasts next month's product demand with 11.1% weighted error, 24% lower RMSE than the seasonal-naive rule. Net sales for 2026-10 to 2027-09 are forecast at BDT 76.3 million (+12.1% on the previous 12 months; 80% range BDT 72.7 million - BDT 79.9 million).",
+    "recommendation": "Use the product-level forecast for the monthly production plan and the interval for safety stock."
+  },
+  {
+    "area": "Risk",
+    "type": "Anomalies",
+    "insight": "28 of 2,465 trading days were flagged as unusual. In a controlled test, rules plus Isolation Forest caught 91% of 1,000 planted data errors.",
+    "recommendation": "Run the anomaly screen daily and investigate flagged days and orders before month-end reporting."
+  }
+]

@@ -1,0 +1,134 @@
+{
+  "daily": {
+    "days": 2465,
+    "flag_z": 4,
+    "flag_iso": 25,
+    "flag_both": 1,
+    "flag_any": 28
+  },
+  "top_days": [
+    {
+      "Date": "28 Oct 2022",
+      "Net sales (BDT)": 70214.67,
+      "Expected (BDT)": 113462.35000000002,
+      "Deviation %": -38.11632669339213,
+      "Robust z": -4.013822852538671,
+      "Flagged by": "robust z"
+    },
+    {
+      "Date": "22 Oct 2021",
+      "Net sales (BDT)": 69194.04,
+      "Expected (BDT)": 109276.06,
+      "Deviation %": -36.67959844086619,
+      "Robust z": -3.821867516085322,
+      "Flagged by": "robust z"
+    },
+    {
+      "Date": "06 Sep 2026",
+      "Net sales (BDT)": 125261.88,
+      "Expected (BDT)": 195913.11,
+      "Deviation %": -36.062533028034714,
+      "Robust z": -3.7407574189124664,
+      "Flagged by": "robust z"
+    },
+    {
+      "Date": "30 Sep 2021",
+      "Net sales (BDT)": 67357.67,
+      "Expected (BDT)": 103385.35,
+      "Deviation %": -34.84795476341668,
+      "Robust z": -3.583369164193986,
+      "Flagged by": "both"
+    },
+    {
+      "Date": "02 Feb 2022",
+      "Net sales (BDT)": 69148.79000000001,
+      "Expected (BDT)": 104762.92190474004,
+      "Deviation %": -33.994977666930325,
+      "Robust z": -3.474582226122952,
+      "Flagged by": "Isolation Forest"
+    },
+    {
+      "Date": "15 Aug 2021",
+      "Net sales (BDT)": 66039.23000000001,
+      "Expected (BDT)": 99664.32999999999,
+      "Deviation %": -33.73834951782647,
+      "Robust z": -3.4421273940723007,
+      "Flagged by": "Isolation Forest"
+    },
+    {
+      "Date": "11 Feb 2025",
+      "Net sales (BDT)": 106843.33000000002,
+      "Expected (BDT)": 160092.85847604004,
+      "Deviation %": -33.26165138341227,
+      "Robust z": -3.3821733293571663,
+      "Flagged by": "Isolation Forest"
+    },
+    {
+      "Date": "13 Jan 2023",
+      "Net sales (BDT)": 84813.87000000001,
+      "Expected (BDT)": 126483.37,
+      "Deviation %": -32.94464718958705,
+      "Robust z": -3.342540497015405,
+      "Flagged by": "Isolation Forest"
+    },
+    {
+      "Date": "08 Jan 2025",
+      "Net sales (BDT)": 113187.70999999999,
+      "Expected (BDT)": 168043.19,
+      "Deviation %": -32.64367928268918,
+      "Robust z": -3.305085576159849,
+      "Flagged by": "Isolation Forest"
+    },
+    {
+      "Date": "13 Mar 2025",
+      "Net sales (BDT)": 117699.39000000001,
+      "Expected (BDT)": 171855.46999999997,
+      "Deviation %": -31.512572744993207,
+      "Robust z": -3.165802338792687,
+      "Flagged by": "Isolation Forest"
+    }
+  ],
+  "transaction_detection": [
+    {
+      "Method": "IQR on log quantity (per product)",
+      "Flagged": 1500,
+      "Precision": 0.112,
+      "Recall": 0.168,
+      "price x10 (typo)": 0.0,
+      "quantity x20 (extra zero)": 0.664,
+      "discount 30-45%": 0.0,
+      "price at 10% of list": 0.008
+    },
+    {
+      "Method": "Business rules (price, discount)",
+      "Flagged": 750,
+      "Precision": 1.0,
+      "Recall": 0.75,
+      "price x10 (typo)": 1.0,
+      "quantity x20 (extra zero)": 0.0,
+      "discount 30-45%": 1.0,
+      "price at 10% of list": 1.0
+    },
+    {
+      "Method": "Isolation Forest (4 features)",
+      "Flagged": 2500,
+      "Precision": 0.3636,
+      "Recall": 0.909,
+      "price x10 (typo)": 1.0,
+      "quantity x20 (extra zero)": 0.636,
+      "discount 30-45%": 1.0,
+      "price at 10% of list": 1.0
+    },
+    {
+      "Method": "Rules OR Isolation Forest",
+      "Flagged": 2500,
+      "Precision": 0.3636,
+      "Recall": 0.909,
+      "price x10 (typo)": 1.0,
+      "quantity x20 (extra zero)": 0.636,
+      "discount 30-45%": 1.0,
+      "price at 10% of list": 1.0
+    }
+  ],
+  "real_flagged_iso": 1601
+}

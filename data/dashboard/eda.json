@@ -1,0 +1,138 @@
+{
+  "total_net_sales": 318375077.94,
+  "total_units": 3091957,
+  "total_orders": 500000,
+  "avg_order_value": 636.75015588,
+  "avg_discount_pct": 2.3474986399999995,
+  "discount_cost": 7669417.390000001,
+  "cagr_sales": 0.16632045343312774,
+  "cagr_units": 0.04970861221128908,
+  "cagr_price": 0.11180943267406929,
+  "first_full_year": 2020,
+  "last_full_year": 2025,
+  "ytd_growth_latest": 0.14032316024599423,
+  "latest_year": 2026,
+  "latest_month": 9,
+  "seasonal_index_per_day": {
+    "Jan": 96.6,
+    "Feb": 92.1,
+    "Mar": 97.8,
+    "Apr": 95.7,
+    "May": 97.7,
+    "Jun": 96.5,
+    "Jul": 94.2,
+    "Aug": 96.6,
+    "Sep": 99.7,
+    "Oct": 102.3,
+    "Nov": 108.1,
+    "Dec": 122.6
+  },
+  "seasonal_index_total": {
+    "Jan": 98.3,
+    "Feb": 85.7,
+    "Mar": 99.6,
+    "Apr": 94.3,
+    "May": 99.4,
+    "Jun": 95.0,
+    "Jul": 95.9,
+    "Aug": 98.3,
+    "Sep": 98.2,
+    "Oct": 104.1,
+    "Nov": 106.5,
+    "Dec": 124.8
+  },
+  "peak_month": "Dec",
+  "trough_month": "Feb",
+  "peak_index": 124.76884660380797,
+  "trough_index": 85.67567772969672,
+  "kw_month_daily_H": 510.91720598395386,
+  "kw_month_daily_p": 1.5049139255172637e-102,
+  "dow_cv": 0.0061664004058206824,
+  "top_category": "Muffin",
+  "top_category_share": 22.44706430616666,
+  "fastest_category": "Layer Cake",
+  "fastest_category_cagr": 67.7011978093638,
+  "abc_counts": {
+    "A": 27,
+    "C": 13,
+    "B": 12
+  },
+  "share_top10_products": 38.4873022828415,
+  "top_region": "Dhaka",
+  "top_region_share": 43.89941183660728,
+  "dhaka_ctg_share": 58.31188117211459,
+  "channel_qty": {
+    "General Trade": 5.3194396980390195,
+    "Modern Trade": 6.275776566976143,
+    "Distributor": 11.425941629022063,
+    "E-commerce": 3.662101459402264
+  },
+  "channel_share": {
+    "General Trade": 45.60837911671122,
+    "Modern Trade": 25.614970178466358,
+    "Distributor": 22.897654414940924,
+    "E-commerce": 5.878996289881522
+  },
+  "customer_aov": {
+    "Retailer": 637.9827210105885,
+    "Super Shop": 632.6500702487184,
+    "Distributor": 635.2647881664965,
+    "Online Customer": 641.9994985831709,
+    "Corporate": 636.437436270504
+  },
+  "tests": {
+    "Units/order by channel": {
+      "stat": 43269.880668721096,
+      "p": 0.0,
+      "effect": 0.08653445361307109
+    },
+    "Units/order by region": {
+      "stat": 27261.356022842163,
+      "p": 0.0,
+      "effect": 0.05450391113172923
+    },
+    "Units/order by customer type": {
+      "stat": 2.6187889230177004,
+      "p": 0.6234983818000052,
+      "effect": -2.762449778462384e-06
+    },
+    "Daily sales by month (detrended)": {
+      "stat": 510.91720598395386,
+      "p": 1.5049139255172637e-102,
+      "effect": 0.22931981925869444
+    },
+    "Discount % vs units/order": {
+      "stat": 0.0010011979209102496,
+      "p": 0.4789749127983765,
+      "effect": 1.0023972768350066e-06
+    },
+    "Large order vs channel": {
+      "stat": 31777.064588046997,
+      "p": 0.0,
+      "effect": 0.25209944303011456
+    }
+  },
+  "large_order_rate": 0.191814,
+  "qty_skew": 3.1202553108447835,
+  "qty_median": 4.0,
+  "value_skew": 4.4665407737085685,
+  "n_outlier_flags": 1334,
+  "corr_qty_price": 0.02511658984476818,
+  "corr_sales_price": 0.6847046260520244,
+  "corr_sales_qty": 0.7023331867672093,
+  "avg_volume_growth": 4.971876256941585,
+  "avg_price_growth": 11.27862493350217,
+  "elasticity_naive": 0.41654784893988395,
+  "elasticity": 0.09374355603601658,
+  "elasticity_ci": [
+    -0.27533699983818327,
+    0.46282411191021644
+  ],
+  "elasticity_p": 0.6186141431702139,
+  "elasticity_r2": 0.8070925549307075,
+  "launch_cohorts": {
+    "2020": 43,
+    "2021": 5,
+    "2022": 4
+  }
+}

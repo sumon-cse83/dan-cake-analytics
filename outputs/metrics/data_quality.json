@@ -1,0 +1,186 @@
+{
+  "rows": 500000,
+  "columns": 23,
+  "missing_cells": 0,
+  "missing_by_column": {},
+  "hidden_placeholders": {},
+  "exact_duplicates": 0,
+  "duplicate_ids": 0,
+  "rule_violations": {
+    "Quantity": 0,
+    "Market_Price_BDT": 0,
+    "Discount_%": 0,
+    "Net_Sales_BDT": 0
+  },
+  "identity_gross_max_err": 3.637978807091713e-12,
+  "identity_net_max_err": 3.637978807091713e-12,
+  "identity_price_max_err": 0.02562000000000353,
+  "calendar_mismatch": 0,
+  "product_attribute_conflicts": 0,
+  "date_min": "2020-01-01",
+  "date_max": "2026-09-30",
+  "n_products": 52,
+  "n_regions": 11,
+  "n_channels": 4,
+  "n_customer_types": 5,
+  "after_cleaning_rows": 500000,
+  "after_cleaning_missing": 0,
+  "cleaning_log": [
+    [
+      "placeholder to NaN: Product_ID",
+      0
+    ],
+    [
+      "placeholder to NaN: Product_Name",
+      0
+    ],
+    [
+      "placeholder to NaN: Category",
+      0
+    ],
+    [
+      "placeholder to NaN: Pack_Size",
+      0
+    ],
+    [
+      "placeholder to NaN: Region",
+      0
+    ],
+    [
+      "placeholder to NaN: Channel",
+      0
+    ],
+    [
+      "placeholder to NaN: Customer_Type",
+      0
+    ],
+    [
+      "placeholder to NaN: Month_Name",
+      0
+    ],
+    [
+      "placeholder to NaN: Quarter",
+      0
+    ],
+    [
+      "exact duplicate rows removed",
+      0
+    ],
+    [
+      "duplicate Transaction_ID removed (kept most complete)",
+      0
+    ],
+    [
+      "rows dropped: essential field missing",
+      0
+    ],
+    [
+      "impossible value blanked: Quantity",
+      0
+    ],
+    [
+      "impossible value blanked: Market_Price_BDT",
+      0
+    ],
+    [
+      "impossible value blanked: Discount_%",
+      0
+    ],
+    [
+      "impossible value blanked: Net_Sales_BDT",
+      0
+    ],
+    [
+      "derived from identity: Quantity",
+      0
+    ],
+    [
+      "derived from identity: Market_Price_BDT",
+      0
+    ],
+    [
+      "derived from identity: Gross_Sales_BDT",
+      0
+    ],
+    [
+      "derived from identity: Net_Sales_BDT",
+      0
+    ],
+    [
+      "derived from identity: Discount_%",
+      0
+    ],
+    [
+      "median imputed: Observed_Price_BDT",
+      0
+    ],
+    [
+      "median imputed: List_Price_BDT",
+      0
+    ],
+    [
+      "median imputed: Market_Price_BDT",
+      0
+    ],
+    [
+      "median imputed: Discount_%",
+      0
+    ],
+    [
+      "median imputed: Unit_Selling_Price_BDT",
+      0
+    ],
+    [
+      "median imputed: Quantity",
+      0
+    ],
+    [
+      "median imputed: Gross_Sales_BDT",
+      0
+    ],
+    [
+      "median imputed: Discount_BDT",
+      0
+    ],
+    [
+      "median imputed: Net_Sales_BDT",
+      0
+    ],
+    [
+      "product mode imputed: Product_Name",
+      0
+    ],
+    [
+      "product mode imputed: Category",
+      0
+    ],
+    [
+      "product mode imputed: Pack_Size",
+      0
+    ],
+    [
+      "labelled 'Unknown': Region",
+      0
+    ],
+    [
+      "labelled 'Unknown': Channel",
+      0
+    ],
+    [
+      "labelled 'Unknown': Customer_Type",
+      0
+    ],
+    [
+      "Quantity outliers flagged (kept)",
+      1334
+    ]
+  ],
+  "warehouse": {
+    "fact_sales": 500000,
+    "dim_product": 52,
+    "dim_segment": 220,
+    "dim_date": 2465,
+    "load_seconds": 3.5,
+    "reconciliation_diff_bdt": 0.0
+  }
+}

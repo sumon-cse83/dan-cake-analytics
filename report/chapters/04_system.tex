@@ -1,0 +1,169 @@
+\chapter[System Design, Data and Preprocessing]{System Design, Data\\ and Preprocessing}\label{ch:system}
+
+\section{Architecture of the framework}
+The framework is organised in layers that mirror the workflow in the proposal (\cref{fig:architecture}). Each
+layer is a Python module with a single responsibility. The modules communicate only through files with stable
+formats (Parquet, SQLite and JSON), so any layer can be replaced without changing the others. For example, the
+Streamlit dashboard could be swapped for Power BI reading the same SQLite store.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[node distance=3.5mm, every node/.style={font=\footnotesize},
+  L/.style={draw=brand, rounded corners, fill=brand!7, minimum width=12.5cm, minimum height=8.5mm, align=left, text width=12cm},
+  arr/.style={-{Stealth[length=2mm]}, thick, brand}]
+\node[L] (a) {\textbf{1. Data sources} \hfill raw CSV export (\NRows transactions, \NCols columns)};
+\node[L, below=of a] (b) {\textbf{2. Ingestion \& validation} \hfill typed load, schema, rule and identity checks \hfill \texttt{data.py}};
+\node[L, below=of b] (c) {\textbf{3. Cleaning \& storage} \hfill imputation, de-duplication, outlier flags, star schema (SQLite) \hfill \texttt{data.py}};
+\node[L, below=of c] (d) {\textbf{4. Exploratory analytics} \hfill trends, seasonality, tests, elasticity \hfill \texttt{eda.py}};
+\node[L, below=of d] (e) {\textbf{5. Feature engineering} \hfill leakage-safe lags, rolling statistics, calendar, price \hfill \texttt{features.py}};
+\node[L, below=of e] (f) {\textbf{6. Machine learning} \hfill forecasting $\cdot$ classification $\cdot$ clustering $\cdot$ anomaly detection};
+\node[L, below=of f] (g) {\textbf{7. Evaluation \& explanation} \hfill benchmarks, metrics, permutation importance, SHAP};
+\node[L, below=of g] (h) {\textbf{8. Presentation} \hfill Streamlit dashboard $\cdot$ project website $\cdot$ \LaTeX{} report \hfill \texttt{dashboard/}};
+\node[L, below=of h, fill=accent!10, draw=accent] (i) {\textbf{9. Decision support} \hfill automatically generated insights and recommendations \hfill \texttt{insights.py}};
+\foreach \x/\y in {a/b,b/c,c/d,d/e,e/f,f/g,g/h,h/i} \draw[arr] (\x)--(\y);
+\end{tikzpicture}
+\caption{Layered architecture of the intelligent analytics framework}\label{fig:architecture}
+\end{figure}
+
+A single command, \texttt{python run\_pipeline.py}, executes all layers in order. It writes:
+\begin{itemize}
+  \item the cleaned dataset (\path{data/processed}) and the warehouse (\path{data/warehouse/dancake.db});
+  \item metrics in JSON (\path{outputs/metrics}) and tables in CSV (\path{outputs/tables});
+  \item every figure and \LaTeX{} table of this report (\path{report/figures}, \path{report/tables}), and a
+        file of \LaTeX{} macros holding every number quoted in the text (\path{report/generated/numbers.tex});
+  \item compact aggregated data for the dashboard and the website (\path{data/dashboard}).
+\end{itemize}
+Because no result is typed by hand, the report, dashboard and website cannot drift apart. A new month of data
+can be incorporated by re-running one command.
+
+\section{The dataset}
+\Cref{tab:dqsummary} summarises the dataset and the results of the validation layer. Each transaction belongs to
+one of \NProducts products in 13 categories. These are sold across \NRegions regions through \NChannels
+channels (General Trade, Modern Trade, Distributor, E-commerce) to \NCustTypes customer types (Retailer, Super
+Shop, Distributor, Corporate, Online Customer). Five products were launched after 2020: Lachcha Semai, two
+breads, a croissant and a cappuccino muffin gift pack.
+
+\begin{table}[htbp]\centering\small
+\caption{Dataset profile and data-quality validation results}\label{tab:dqsummary}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Check} & \textbf{Result} \\ \midrule
+Rows $\times$ columns & \NRows $\times$ \NCols \\
+Period covered & \DateMin -- \DateMax \\
+Products / regions / channels / customer types & \NProducts / \NRegions / \NChannels / \NCustTypes \\
+Missing cells (incl.\ hidden placeholders such as ``NA'', ``-'') & 0 \\
+Exact duplicate rows / duplicate transaction IDs & 0 / 0 \\
+Domain-rule violations (quantity, price, discount, value) & 0 \\
+Gross $=$ quantity $\times$ market price (max.\ abs.\ error) & $<10^{-11}$ BDT \\
+Net $=$ gross $-$ discount (max.\ abs.\ error) & $<10^{-11}$ BDT \\
+Year/month columns consistent with date & 100\% \\
+Product ID $\rightarrow$ one name, category, pack size & 100\% \\
+Statistical quantity outliers (flagged, retained) & \NOutlierFlags (\OutlierPct\%) \\
+Warehouse reconciliation (SQL total $-$ pandas total) & 0.00 BDT \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\section{Preprocessing pipeline}
+The pipeline is written defensively. It must work correctly on dirty data, not only on the delivered file,
+which proved to be exceptionally clean. Its behaviour on dirty data was verified in two ways. Six hands-on
+practice scripts deliberately damaged copies of the data and measured how much was repaired. In addition, the
+automated tests in \texttt{tests/} inject missing values, duplicates and impossible values and assert that the
+pipeline repairs them (\cref{app:reproduce}). The steps are applied in a fixed order, because some steps depend
+on others.
+
+\subsection{Data type conversion and validation}
+Dates are parsed with an explicit format (\texttt{dd-mm-yy}) and numeric columns are coerced. Values that fail
+to parse become missing, so they are never silently misread. Text fields are trimmed of spaces. The validation
+step then produces a machine-readable quality report (\texttt{outputs/metrics/data\_quality.json}). The report
+checks for missing values, hidden placeholder strings, duplicate rows and keys, and domain-rule violations. It
+also checks the accounting identities between columns and the consistency of calendar fields and product
+attributes.
+
+\subsection{Missing-value treatment}
+A decision hierarchy was implemented, following \citet{garcia2015}:
+\begin{enumerate}
+  \item \emph{derive} the value exactly from other columns where an identity exists (for example,
+        $\text{quantity} = \text{gross}/\text{market price}$, or year and month from the date);
+  \item \emph{drop} the row if an essential identifier (transaction ID, date, product) is missing, because a
+        guess would amount to fabrication;
+  \item \emph{impute} numeric gaps with the median of the same product, which is robust to skew;
+  \item \emph{impute} product attributes with the product's mode, and label missing market attributes
+        explicitly as ``Unknown'' so that they remain visible.
+\end{enumerate}
+In practice tests with 3\% of cells removed at random, deriving values from accounting identities restored
+quantities, prices and sales values exactly. Simple mean imputation, by contrast, introduced errors of several
+units per order.
+
+\subsection{Duplicate removal}
+Exact duplicates are removed first. Duplicate keys, meaning the same transaction ID with differing values, are
+resolved by keeping the most complete version. IDs are compared after upper-casing and trimming, so that hidden
+duplicates such as `` dc2020000001'' are caught. Near-duplicates (same date, product, region, channel and
+quantity but different IDs) are only \emph{flagged}. In sales data they are usually genuine repeat orders.
+
+\subsection{Outlier detection and treatment}
+Order quantities are strongly right-skewed (skewness \QtySkew; median \QtyMedian units). Each product also has
+its own typical order size. A global $z$-score therefore flags too many small-product orders and too few
+large-product ones. Four methods were compared in the practice phase: the IQR rule, the $z$-score, the MAD-based
+modified $z$-score, and a per-product IQR rule on the log scale. The last of these was the most balanced, and
+it is the method used in the pipeline:
+\[
+  \text{flag}_i = \bigl[\, \log(1+q_i) \notin [\,Q_1^{(p)} - 1.5\,\text{IQR}^{(p)},\; Q_3^{(p)} + 1.5\,\text{IQR}^{(p)}\,] \bigr],
+\]
+where the quartiles are computed separately for each product $p$. Impossible values (for example, a quantity
+below one or a discount above 50\%) are treated as errors: they are blanked and re-derived. Unusual but possible
+values are flagged and kept. The real data contained \NOutlierFlags such flags (\OutlierPct\% of orders), all
+plausible bulk orders, and no impossible values.
+
+\subsection{Normalisation and encoding}
+Scaling is not applied globally. It is applied \emph{inside} each model's pipeline, fitted on the training rows
+only, to avoid leakage. Count-like features are log-transformed, $\log(1+x)$, to stabilise variance, and they
+are then standardised for scale-sensitive models (linear regression, KNN and SVR). Nominal categories (region,
+channel, customer type, category) are one-hot encoded. Month is encoded cyclically as
+$(\sin 2\pi m/12, \cos 2\pi m/12)$, so that December and January are neighbours. High-cardinality interactions
+(channel $\times$ region, product) are target-encoded with additive smoothing,
+\[
+  \tilde\mu_k = \frac{n_k \bar y_k + m\,\bar y}{n_k + m}, \qquad m=50,
+\]
+using training data only. Rare levels are thereby shrunk towards the overall mean.
+
+\subsection{Feature engineering for demand forecasting}
+Transactions were aggregated into a \emph{panel} of \PanelSeries products $\times$ months. Each feature for
+month $t$ uses only information available at the end of month $t-1$, or information that is planned in advance
+(\cref{tab:features}). The same feature function is used for training, testing and future forecasting, so the
+rule is enforced in one place. One instructive check compared a correct three-month rolling mean (shifted
+before rolling) with a ``leaky'' version that included the current month. The leaky version correlated more
+strongly with the target, which is exactly why leakage is tempting and dangerous \citep{kaufman2012}.
+
+\begin{table}[htbp]\centering\small
+\caption{Features of the demand-forecasting model (\PanelFeatures in total)}\label{tab:features}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Group} & \textbf{Features} \\ \midrule
+History (lags) & units in months $t-1, t-2, t-3, t-6, t-12$ \\
+Rolling statistics & mean of the previous 3, 6 and 12 months; standard deviation of the previous 3 months \\
+Momentum & last month's year-on-year growth; 12-month trend ratio \\
+Price (planned) & list price of month $t$; year-on-year list-price change \\
+Product & category (one-hot); pack weight in grams; gift-pack indicator; months since launch \\
+Calendar & month number; cyclical month (sine, cosine); December and February indicators; days in month; time index \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Dimensional data store}
+The cleaned data are loaded into a star schema in SQLite (\cref{fig:star}). The fact table \texttt{fact\_sales}
+holds one row per transaction with its measures. The dimensions describe products, dates (including a
+Friday--Saturday weekend flag, as in Bangladesh) and the 220 market segments formed by region, channel and
+customer type. Indexes on the foreign keys make typical KPI queries return in well under a second. A
+reconciliation check confirms that total net sales in the warehouse equal the total in the cleaned dataset to
+the last paisa. \Cref{app:sql} lists example analytical SQL queries.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[every node/.style={font=\scriptsize},
+  T/.style={draw=brand, rectangle split, rectangle split parts=2, rounded corners, fill=white, text width=3.4cm, align=left},
+  F/.style={T, draw=accent, fill=accent!6, text width=3.8cm}]
+\node[F] (f) at (0,0) {\textbf{fact\_sales} (\NRows)\nodepart{second}transaction\_id\\date\_id (FK)\\product\_id (FK)\\segment\_id (FK)\\list/market/unit price\\discount\_pct, quantity\\gross, discount, net sales\\flag\_outlier\_qty};
+\node[T] (p) at (-5.2,1.6) {\textbf{dim\_product} (\NProducts)\nodepart{second}product\_id (PK)\\product\_name, category\\pack\_size, launch\_year\\mrp\_bdt};
+\node[T] (d) at (5.2,1.6) {\textbf{dim\_date} (2,465)\nodepart{second}date\_id (PK), date\\year, quarter, month\\day\_of\_week, is\_weekend};
+\node[T] (s) at (0,-4.1) {\textbf{dim\_segment} (220)\nodepart{second}segment\_id (PK)\\region, channel\\customer\_type};
+\draw[thick, brand] (f.west) -- (p.east); \draw[thick, brand] (f.east) -- (d.west); \draw[thick, brand] (f.south) -- (s.north);
+\end{tikzpicture}
+\caption{Star schema of the analytical data store}\label{fig:star}
+\end{figure}

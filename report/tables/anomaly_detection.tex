@@ -1,0 +1,19 @@
+\begin{table}[htbp]
+\centering
+\footnotesize
+\caption{Detection of 1,000 injected transaction errors in 500,000 orders}
+\label{tab:anomaly}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lrrrrrrr}
+\toprule
+\textbf{Method} & \textbf{Flagged} & \textbf{Precision} & \textbf{Recall} & \textbf{Price x10} & \textbf{Qty x20} & \textbf{Disc. 30-45\%} & \textbf{Price 10\%} \\
+\midrule
+IQR on log quantity (per product) & 1,500 & 0.112 & 0.168 & 0.00 & 0.66 & 0.00 & 0.01 \\
+Business rules (price, discount) & 750 & 1.000 & 0.750 & 1.00 & 0.00 & 1.00 & 1.00 \\
+Isolation Forest (4 features) & 2,500 & 0.364 & 0.909 & 1.00 & 0.64 & 1.00 & 1.00 \\
+Rules OR Isolation Forest & 2,500 & 0.364 & 0.909 & 1.00 & 0.64 & 1.00 & 1.00 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\par\smallskip\parbox{0.92\linewidth}{\footnotesize\emph{Note:} The last four columns give the share of each error type that was detected. 250 errors of each type were planted in a copy of the data.}
+\end{table}

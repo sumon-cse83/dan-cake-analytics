@@ -1,0 +1,32 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dashboard",
+      "runtimeExecutable": "F:/dan_cake_project/.venv/Scripts/streamlit.exe",
+      "runtimeArgs": [
+        "run",
+        "dashboard/app.py",
+        "--server.port",
+        "8510",
+        "--server.headless",
+        "true"
+      ],
+      "port": 8510,
+      "autoPort": false
+    },
+    {
+      "name": "website",
+      "runtimeExecutable": "F:/dan_cake_project/.venv/Scripts/python.exe",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8520",
+        "--directory",
+        "docs"
+      ],
+      "port": 8520,
+      "autoPort": false
+    }
+  ]
+}

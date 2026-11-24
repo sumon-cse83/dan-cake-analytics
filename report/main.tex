@@ -1,0 +1,123 @@
+% =============================================================================
+%  MSc Project Report
+%  An Intelligent Data Analytics and Machine Learning Framework for
+%  Predictive Business Decision-Making: A Dan Cake Bangladesh Case Study
+%
+%  Compile:  pdflatex main -> bibtex main -> pdflatex main -> pdflatex main
+%            (or simply upload the whole 'report' folder to Overleaf)
+%  Numbers in the text come from generated/numbers.tex and tables from tables/,
+%  both written by `python run_pipeline.py`. Do not type results by hand.
+% =============================================================================
+\documentclass[12pt,a4paper,oneside]{report}
+
+% ---------------------------------------------------------------- packages
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm,left=3cm]{geometry}
+\usepackage{setspace}\onehalfspacing
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,longtable,array,multirow}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{caption}\captionsetup{font=small,labelfont=bf,skip=6pt}
+\usepackage{float}
+\usepackage{adjustbox}
+\usepackage{enumitem}
+\usepackage{xspace}
+\usepackage{listings}
+\usepackage{tikz}\usetikzlibrary{arrows.meta,positioning,shapes.geometric,shapes.multipart,fit,backgrounds}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage[round,authoryear]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage[nameinlink,capitalise]{cleveref}
+
+\definecolor{brand}{HTML}{1F4E79}
+\definecolor{accent}{HTML}{C55A11}
+\definecolor{codebg}{HTML}{F5F7FA}
+\titleformat{\chapter}[display]{\normalfont\huge\bfseries\color{brand}}{\chaptertitlename\ \thechapter}{12pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-10pt}{24pt}
+\titleformat{\section}{\normalfont\Large\bfseries\color{brand}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}\fancyhf{}\fancyhead[L]{\small\nouppercase{\leftmark}}\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\thepage}\renewcommand{\headrulewidth}{0pt}}
+\lstset{basicstyle=\ttfamily\footnotesize,backgroundcolor=\color{codebg},frame=single,rulecolor=\color{gray!40},
+  breaklines=true,columns=fullflexible,keywordstyle=\color{brand}\bfseries,commentstyle=\color{gray},
+  stringstyle=\color{accent},showstringspaces=false,xleftmargin=4pt,framexleftmargin=4pt}
+\setlist{itemsep=2pt,topsep=4pt}
+\graphicspath{{figures/}}
+\setlength{\emergencystretch}{3em}   % lets LaTeX avoid lines that overflow the margin
+
+% ---------------------------------------------------------------- generated results
+\input{generated/numbers.tex}
+\xspaceaddexceptions{\%}   % no space between a generated number and a following percent sign
+
+% ---------------------------------------------------------------- EDIT THESE
+\newcommand{\StudentName}{Your Full Name}
+\newcommand{\StudentID}{Student ID}
+\newcommand{\Supervisor}{Supervisor Name}
+\newcommand{\Programme}{Professional Masters in Information Technology}
+\newcommand{\Department}{Department / Institute Name}
+\newcommand{\University}{University Name}
+\newcommand{\SubmissionDate}{November 2026}
+\newcommand{\ProjectTitle}{An Intelligent Data Analytics and Machine Learning Framework for Predictive Business Decision-Making}
+\newcommand{\ProjectSubtitle}{A Case Study of 500,000 Sales Transactions of Dan Cake Bangladesh}
+\newcommand{\repo}{\url{https://github.com/YOUR-USER/dan-cake-analytics}}
+\newcommand{\dashurl}{\url{https://YOUR-APP.streamlit.app}}
+\newcommand{\siteurl}{\url{https://YOUR-USER.github.io/dan-cake-analytics}}
+\newcommand{\BDT}{BDT\xspace}
+
+\hypersetup{pdftitle={\ProjectTitle},pdfauthor={\StudentName}}
+
+\begin{document}
+
+% ================================================================ title page
+\begin{titlepage}
+\centering
+{\large \University\par}\vspace{2mm}
+{\normalsize \Department\par}
+\vspace{2.2cm}
+{\color{brand}\rule{\linewidth}{1.2pt}\par}\vspace{6mm}
+{\LARGE\bfseries\color{brand} \ProjectTitle\par}\vspace{5mm}
+{\Large \ProjectSubtitle\par}\vspace{4mm}
+{\color{brand}\rule{\linewidth}{1.2pt}\par}
+\vspace{2cm}
+{\large A project report submitted in partial fulfilment of the requirements for the degree of\par}\vspace{2mm}
+{\Large\bfseries \Programme\par}
+\vspace{2cm}
+{\large \textbf{Submitted by:} \StudentName\par \StudentID\par}\vspace{6mm}
+{\large \textbf{Supervisor:} \Supervisor\par}
+\vfill
+{\large \SubmissionDate\par}
+\end{titlepage}
+
+\pagenumbering{roman}
+\input{chapters/00_frontmatter.tex}
+
+\tableofcontents
+\listoffigures
+\listoftables
+\input{chapters/00_abbreviations.tex}
+\cleardoublepage
+\pagenumbering{arabic}
+
+\input{chapters/01_introduction.tex}
+\input{chapters/02_literature.tex}
+\input{chapters/03_methodology.tex}
+\input{chapters/04_system.tex}
+\input{chapters/05_eda.tex}
+\input{chapters/06_models.tex}
+\input{chapters/07_dashboard.tex}
+\input{chapters/08_discussion.tex}
+\input{chapters/09_conclusion.tex}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\appendix
+\input{chapters/10_appendix.tex}
+
+\end{document}

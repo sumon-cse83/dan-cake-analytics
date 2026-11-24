@@ -1,0 +1,30 @@
+# environments
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+# large raw and intermediate data (keep data/dashboard - the app needs it)
+*.csv
+!sql/*.csv
+data/processed/
+data/warehouse/
+outputs/models/
+# LaTeX build files
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.lof
+report/*.lot
+report/*.bbl
+report/*.blg
+report/*.synctex.gz
+report/*.fls
+report/*.fdb_latexmk
+.tex/
+# local-only files
+.claude/settings.local.json
+report_overleaf.zip
+outputs/*.txt
+# private: the proposal document is not published (remove this line if you want it in the repo)
+Project Proposal.docx

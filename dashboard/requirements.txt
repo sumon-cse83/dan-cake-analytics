@@ -1,0 +1,6 @@
+# Minimal environment for the hosted dashboard (Streamlit Community Cloud reads this file first)
+pandas>=2.2
+numpy>=2.0
+plotly>=5.24
+streamlit>=1.40
+pyarrow>=17

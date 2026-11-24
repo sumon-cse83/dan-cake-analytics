@@ -1,0 +1,82 @@
+\chapter{Data Dictionary}\label{app:dictionary}
+\begin{table}[htbp]\centering\footnotesize
+\caption{Data dictionary of the transaction dataset}\label{tab:dictionary}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+\textbf{Column} & \textbf{Type} & \textbf{Description} \\ \midrule
+Transaction\_ID & text & Unique transaction identifier (e.g.\ DC2020000000) \\
+Date & date & Transaction date (dd-mm-yy) \\
+Year, Month, Month\_Name, Quarter & integer/text & Calendar attributes derived from the date \\
+Product\_ID, Product\_Name & text & Product code and name (\NProducts products) \\
+Category & text & Product category (13 categories) \\
+Pack\_Size & text & Pack size, e.g.\ 30g, 27--30g, 30g x 12, 5 pcs \\
+Product\_Launch\_Year & integer & Year the product was introduced \\
+Observed\_Price\_BDT & integer & Printed maximum retail price \\
+List\_Price\_BDT & integer & Company list price for the year \\
+Market\_Price\_BDT & decimal & Transaction price before discount \\
+Discount\_\% & decimal & Discount percentage \\
+Unit\_Selling\_Price\_BDT & decimal & Price per unit after discount \\
+Quantity & integer & Units sold \\
+Gross\_Sales\_BDT & decimal & Quantity $\times$ market price \\
+Discount\_BDT & decimal & Discount amount \\
+Net\_Sales\_BDT & decimal & Gross sales $-$ discount \\
+Region & text & One of 11 regions of Bangladesh \\
+Channel & text & General Trade, Modern Trade, Distributor, E-commerce \\
+Customer\_Type & text & Retailer, Super Shop, Distributor, Corporate, Online Customer \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\chapter{Tuned Hyper-parameters}\label{app:hyper}
+\input{tables/hyperparameters.tex}
+
+\chapter{Example SQL Queries}\label{app:sql}
+The following queries run on the star schema (\cref{fig:star}) and reproduce key figures of \cref{ch:eda}
+directly in SQL. They can also be used as the data source of a Power BI report.
+\lstinputlisting[language=SQL]{sql/kpi_queries.sql}
+
+\chapter{Reproducing and Deploying the Project}\label{app:reproduce}
+\section{Project structure}
+\begin{lstlisting}
+dan_cake_project/
+  run_pipeline.py          one command for the whole framework
+  src/dancake/             config, data, eda, features, forecasting, classification,
+                           clustering, anomaly, insights, export, website
+  dashboard/app.py         Streamlit dashboard
+  data/  processed/ warehouse/ dashboard/   generated data
+  outputs/ metrics/ tables/ models/          generated results
+  report/  main.tex, chapters/, figures/, tables/, generated/
+  docs/                    project website (GitHub Pages)
+  sql/  tests/  guides/
+\end{lstlisting}
+
+\section{Running locally}
+\begin{lstlisting}[language=bash]
+python -m venv .venv
+.venv\Scripts\activate            # Windows  (source .venv/bin/activate on macOS/Linux)
+pip install -r requirements.txt
+python run_pipeline.py            # about 20 minutes
+python -m pytest tests            # automated tests
+streamlit run dashboard/app.py    # open http://localhost:8501
+\end{lstlisting}
+
+\section{Free deployment}
+\begin{enumerate}
+  \item Create a free GitHub account and a public repository; push the project (the raw CSV is excluded by
+        \texttt{.gitignore}; the small dashboard data are included).
+  \item \textbf{Dashboard:} sign in to Streamlit Community Cloud with GitHub, choose \emph{New app}, select the
+        repository, branch \texttt{main} and file \texttt{dashboard/app.py}, then deploy. The app receives an
+        address ending in \texttt{.streamlit.app}.
+  \item \textbf{Website:} in the repository settings, open \emph{Pages}, choose \emph{Deploy from a branch},
+        branch \texttt{main}, folder \texttt{/docs}. The site appears at \path{https://<user>.github.io/<repo>}.
+  \item Regenerate the website with the real links (run inside \texttt{src}), then commit and push:
+\begin{lstlisting}[language=bash]
+python -m dancake.website --dashboard-url <app url> \
+                          --repo-url <repo url>
+\end{lstlisting}
+\end{enumerate}
+
+\section{Re-using the framework for another project}
+Only \texttt{src/dancake/config.py} (paths, column names, train/test dates) and the column lists in the
+feature functions need to change for a new sales dataset. The structure, namely validation, cleaning,
+warehouse, EDA, leakage-safe features, benchmarked models, dashboard, insights and generated report, transfers
+unchanged to other domains such as inventory, finance or customer analytics.

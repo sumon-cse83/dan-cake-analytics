@@ -1,0 +1,90 @@
+\chapter{Introduction}\label{ch:intro}
+
+\section{Context of the study}
+Fast-moving consumer goods (FMCG) companies make a large number of small decisions every day. They decide how
+much of each product to bake, which distributor receives which consignment, which region deserves another
+sales representative and whether a promotion is worth its cost. Each decision is individually modest, but
+together they determine profitability. Bakery products add a further constraint: their shelf life is short.
+Over-production turns quickly into waste and under-production into empty shelves, so the value of knowing
+future demand is unusually high \citep{hyndman2021}.
+
+Dan Cake is a well-known packaged-cake brand in the Bangladeshi market. Its products range from single-serve
+muffins and layer-cake slices to pound cakes, Swiss rolls, cookies and premium gift boxes, and they reach
+consumers through general trade (neighbourhood shops), modern trade (supermarkets), distributors and
+e-commerce. A transaction-level dataset of \NRows sales records from \DateMin to \DateMax was assembled for
+this project. It is large enough that spreadsheet analysis becomes slow and error-prone, yet small enough to be
+analysed in full on a laptop with open-source tools. It is therefore a realistic test bed for the framework
+proposed here.
+
+\section{Problem statement}
+Routine reporting in many organisations still relies on spreadsheets prepared by hand. Such reports usually
+answer only the first of three management questions: \emph{what happened?} They rarely explain \emph{why} it
+happened, and they almost never estimate \emph{what is likely to happen next}. The project proposal identified
+the following specific weaknesses:
+\begin{itemize}
+  \item large datasets are difficult to analyse manually, and manual work is slow and error-prone;
+  \item historical reports do not provide forecasts, so planning is reactive;
+  \item important patterns, relationships and anomalies remain hidden in the detail;
+  \item managers lack an integrated, up-to-date view of key performance indicators (KPIs).
+\end{itemize}
+An integrated framework is therefore needed. It should process the historical data reliably, find meaningful
+patterns, produce validated predictions and present them in a form that managers can act on.
+
+\section{Aim and objectives}
+The \textbf{aim} of the project is to design and develop an intelligent data analytics and machine learning
+framework that transforms raw business data into actionable insights and predictive information for better
+decision-making. The specific objectives are:
+\begin{enumerate}[label=O\arabic*.]
+  \item to collect and prepare a structured business dataset for analysis;
+  \item to develop a reusable preprocessing pipeline that handles missing, duplicate, inconsistent and abnormal data;
+  \item to perform exploratory data analysis (EDA) and to identify trends, relationships and patterns;
+  \item to develop machine-learning models for predictive analytics and to compare several algorithms;
+  \item to develop an interactive analytical dashboard;
+  \item to generate business-oriented insights and recommendations from the analytical results;
+  \item to evaluate the accuracy and usefulness of the framework, and to show how its outputs support management decisions.
+\end{enumerate}
+
+\section{Research questions}
+\begin{enumerate}[label=RQ\arabic*.]
+  \item How can data analytics techniques improve business decision-making in a sales context?
+  \item Which data preprocessing techniques are most effective for preparing business transaction data?
+  \item Which machine-learning algorithm gives the best predictive performance for the selected problems?
+  \item What important patterns and relationships can be found in the historical sales data?
+  \item How accurately can future business outcomes be predicted from historical data?
+  \item How can analytical results be presented effectively to managers through an interactive dashboard?
+  \item To what extent does predictive analytics improve on traditional historical reporting?
+\end{enumerate}
+\Cref{ch:discussion} answers each question explicitly.
+
+\section{Scope}
+The proposal allowed one business domain to be chosen. This study focuses on \textbf{sales analytics}, and
+within it on four analytical problems: (i) monthly demand forecasting for each product, (ii) prediction of
+large orders, (iii) segmentation of products and markets, and (iv) detection of unusual days and transactions.
+The result is a working prototype, not an enterprise production system. The prototype nevertheless follows
+engineering practices that would carry over to production: one configuration file, one command to run the
+whole pipeline, automated tests and generated reporting.
+
+\section{Contributions}
+The main contribution is the \emph{integration} of data engineering, statistics, machine learning and business
+intelligence into one reproducible pipeline. In that pipeline, every figure, table and number in the dashboard,
+the website and this report is regenerated from the raw data by a single command. More specifically, the
+project contributes:
+\begin{itemize}
+  \item a leakage-safe feature design and evaluation protocol for product-level demand forecasting, with
+        time-ordered validation, multi-step (recursive) testing and comparison against naive baselines;
+  \item a comparison of seven regression and seven classification algorithms, plus statistical forecasting
+        models, on a real-scale business dataset;
+  \item an explanation layer (price--volume decomposition, fixed-effects elasticity, permutation importance and
+        SHAP values) that answers the \emph{why} question rather than reporting accuracy alone;
+  \item a free, publicly deployable dashboard and project website, and an automatic insight generator that
+        turns metrics into recommendations.
+\end{itemize}
+
+\section{Structure of the report}
+\Cref{ch:literature} reviews the literature on business analytics, data preparation, forecasting, machine
+learning and dashboards. \Cref{ch:method} sets out the research methodology. \Cref{ch:system} describes the
+architecture of the framework, the dataset and the preprocessing pipeline. \Cref{ch:eda} presents the
+exploratory analysis. \Cref{ch:models} reports the development and evaluation of the machine-learning models.
+\Cref{ch:dashboard} describes the dashboard and the decision-support layer. \Cref{ch:discussion} discusses the
+findings, answers the research questions and states the limitations. \Cref{ch:conclusion} concludes and
+proposes future work.

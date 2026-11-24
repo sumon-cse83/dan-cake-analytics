@@ -1,0 +1,277 @@
+{
+  "panel": {
+    "series": 52,
+    "train_rows": 2912,
+    "test_rows": 1092,
+    "train_months": 59,
+    "test_months": 21,
+    "n_features": 24
+  },
+  "best_model": "Support Vector Regression",
+  "one_step": [
+    {
+      "Model": "Naive (last month)",
+      "MAE": 139.7912087912088,
+      "MSE": 31050.63186813187,
+      "RMSE": 176.2118947975189,
+      "R2": 0.4004390762497114,
+      "MAPE": 17.99559573958394,
+      "WAPE": 17.172362589151124,
+      "fit_s": 0.0,
+      "CV RMSE (log)": NaN
+    },
+    {
+      "Model": "Seasonal naive (same month last year)",
+      "MAE": 120.03021978021978,
+      "MSE": 23232.949633699634,
+      "RMSE": 152.42358621191025,
+      "R2": 0.5513917783386177,
+      "MAPE": 15.375928606918615,
+      "WAPE": 14.74486467028146,
+      "fit_s": 0.0,
+      "CV RMSE (log)": NaN
+    },
+    {
+      "Model": "Linear Regression",
+      "MAE": 91.27114197128067,
+      "MSE": 13861.316348435863,
+      "RMSE": 117.73409170005034,
+      "R2": 0.7323499351137943,
+      "MAPE": 11.475451867119185,
+      "WAPE": 11.212015100303564,
+      "fit_s": 0.21978020668029785,
+      "CV RMSE (log)": 0.16910862094413784
+    },
+    {
+      "Model": "Decision Tree",
+      "MAE": 103.62638801991146,
+      "MSE": 17977.955685403424,
+      "RMSE": 134.08189917137744,
+      "R2": 0.6528611796481703,
+      "MAPE": 13.700592586502397,
+      "WAPE": 12.729769806482249,
+      "fit_s": 8.093320608139038,
+      "CV RMSE (log)": 0.20772612406384972
+    },
+    {
+      "Model": "Random Forest",
+      "MAE": 92.97738449309384,
+      "MSE": 14412.797604697453,
+      "RMSE": 120.05331151075114,
+      "R2": 0.7217013076449754,
+      "MAPE": 12.042662376261596,
+      "WAPE": 11.421614942117406,
+      "fit_s": 142.636084318161,
+      "CV RMSE (log)": 0.19176707247512426
+    },
+    {
+      "Model": "Gradient Boosting",
+      "MAE": 95.71308695474903,
+      "MSE": 15113.27020113442,
+      "RMSE": 122.93604109916026,
+      "R2": 0.708175785885383,
+      "MAPE": 12.50588929154517,
+      "WAPE": 11.757676665982624,
+      "fit_s": 124.91792845726013,
+      "CV RMSE (log)": 0.1888993590299373
+    },
+    {
+      "Model": "XGBoost",
+      "MAE": 93.25076349838312,
+      "MSE": 14294.377006386341,
+      "RMSE": 119.55909420193154,
+      "R2": 0.7239879072741231,
+      "MAPE": 12.276357166882297,
+      "WAPE": 11.455197621913108,
+      "fit_s": 94.82350611686707,
+      "CV RMSE (log)": 0.19168480619332431
+    },
+    {
+      "Model": "K-Nearest Neighbors",
+      "MAE": 96.95858150222205,
+      "MSE": 15865.40391363823,
+      "RMSE": 125.95794501990825,
+      "R2": 0.6936527325263517,
+      "MAPE": 12.011676533705979,
+      "WAPE": 11.910676873627745,
+      "fit_s": 6.84834361076355,
+      "CV RMSE (log)": 0.19511133456113594
+    },
+    {
+      "Model": "Support Vector Regression",
+      "MAE": 90.62900972064854,
+      "MSE": 13271.404520900825,
+      "RMSE": 115.20158211110135,
+      "R2": 0.7437406237719251,
+      "MAPE": 12.257253019739853,
+      "WAPE": 11.133133688994555,
+      "fit_s": 24.85749626159668,
+      "CV RMSE (log)": 0.21508281422248574
+    }
+  ],
+  "tuned_params": {
+    "Linear Regression": {},
+    "Decision Tree": {
+      "min_samples_leaf": 40,
+      "max_depth": 10
+    },
+    "Random Forest": {
+      "n_estimators": 500,
+      "min_samples_leaf": 2,
+      "max_features": 0.33,
+      "max_depth": null
+    },
+    "Gradient Boosting": {
+      "subsample": 1.0,
+      "n_estimators": 200,
+      "max_depth": 2,
+      "learning_rate": 0.05
+    },
+    "XGBoost": {
+      "subsample": 0.9,
+      "reg_lambda": 1,
+      "n_estimators": 600,
+      "min_child_weight": 10,
+      "max_depth": 3,
+      "learning_rate": 0.02,
+      "colsample_bytree": 0.6
+    },
+    "K-Nearest Neighbors": {
+      "weights": "distance",
+      "n_neighbors": 20
+    },
+    "Support Vector Regression": {
+      "gamma": 0.01,
+      "epsilon": 0.05,
+      "C": 0.3
+    }
+  },
+  "best_vs_seasonal_naive_pct": 24.420107823116165,
+  "best_vs_naive_pct": 34.62326578834143,
+  "recursive": [
+    {
+      "Model": "Random Forest",
+      "MAE": 91.04990742877506,
+      "MSE": 13694.133419143189,
+      "RMSE": 117.02193563235565,
+      "R2": 0.7355780933022551,
+      "MAPE": 11.846801303715859,
+      "WAPE": 11.184837999440047
+    },
+    {
+      "Model": "Support Vector Regression",
+      "MAE": 92.29012852672892,
+      "MSE": 13729.168802188267,
+      "RMSE": 117.17153580195263,
+      "R2": 0.7349015902696707,
+      "MAPE": 12.654821287543488,
+      "WAPE": 11.337190401060587
+    },
+    {
+      "Model": "Linear Regression",
+      "MAE": 94.13391454563187,
+      "MSE": 14745.074885744249,
+      "RMSE": 121.4292999475178,
+      "R2": 0.7152853198991636,
+      "MAPE": 11.728265064054648,
+      "WAPE": 11.563686489957703
+    },
+    {
+      "Model": "XGBoost",
+      "MAE": 104.1431403526893,
+      "MSE": 18907.66057527424,
+      "RMSE": 137.50512926896306,
+      "R2": 0.63490937998904,
+      "MAPE": 16.165266244210265,
+      "WAPE": 12.793249180500002
+    },
+    {
+      "Model": "Seasonal naive (2024 pattern repeated)",
+      "MAE": 125.89285714285714,
+      "MSE": 25008.766483516483,
+      "RMSE": 158.141602633578,
+      "R2": 0.5171022864078509,
+      "MAPE": 15.866745484776375,
+      "WAPE": 15.465048259725068
+    }
+  ],
+  "best_recursive_model": "Random Forest",
+  "company_level": [
+    {
+      "Model": "Holt-Winters (additive trend, multiplicative season)",
+      "MAE": 559.3741247406152,
+      "RMSE": 697.8210865402632,
+      "MAPE": 1.3189111335608465
+    },
+    {
+      "Model": "SARIMA(1,1,1)(0,1,1)$_{12}$ on log units",
+      "MAE": 686.5202396179202,
+      "RMSE": 806.2448621429008,
+      "MAPE": 1.6471558139888227
+    },
+    {
+      "Model": "Support Vector Regression one-step, summed over products",
+      "MAE": 712.0010859714956,
+      "RMSE": 875.2912706191469,
+      "MAPE": 1.6823142314996136
+    },
+    {
+      "Model": "Random Forest recursive, summed over products",
+      "MAE": 1185.8035597698479,
+      "RMSE": 1385.9463317165555,
+      "MAPE": 2.770650644617562
+    },
+    {
+      "Model": "Seasonal naive (2024 repeated)",
+      "MAE": 2548.904761904762,
+      "RMSE": 2816.6440094890368,
+      "MAPE": 6.001730881692359
+    }
+  ],
+  "permutation_importance": {
+    "roll12_mean": 0.030332814981721263,
+    "lag_1": 0.02631396488641513,
+    "lag_3": 0.01722517062856175,
+    "Category": 0.013334185396075554,
+    "roll6_mean": 0.012941880231693317,
+    "lag_2": 0.012127885429880969,
+    "month_num": 0.009346010838012755,
+    "lag_12": 0.008970877047632081,
+    "product_age_m": 0.00880990978500299,
+    "days_in_month": 0.008406028152832229,
+    "month_sin": 0.004206472685608068,
+    "roll3_mean": 0.0035065186622780216
+  },
+  "xgb_shap_importance": {
+    "lag_1": 0.05864967778325081,
+    "roll6_mean": 0.040930893272161484,
+    "roll3_mean": 0.0366317518055439,
+    "month_num": 0.02822381630539894,
+    "product_age_m": 0.028182072564959526,
+    "roll12_mean": 0.02786869741976261,
+    "lag_2": 0.025393985211849213,
+    "lag_12": 0.019927799701690674,
+    "days_in_month": 0.016507836058735847,
+    "t_index": 0.013393041677772999,
+    "yoy_growth_lag": 0.011325777508318424,
+    "pack_grams": 0.010814165696501732
+  },
+  "future": {
+    "start": "2026-10-01",
+    "end": "2027-09-01",
+    "units": 545590.1655555735,
+    "units_ml_raw": 520937.67981509713,
+    "net_sales": 76285003.99047351,
+    "net_sales_lo": 72716545.99696112,
+    "net_sales_hi": 79921277.57314709,
+    "prev12_units": 524140.0,
+    "prev12_sales": 68022790.25999999,
+    "peak_month": "2026-12-01",
+    "interval_ml_lo_pct": -2.2751567243231574,
+    "interval_ml_hi_pct": 4.410866156361881,
+    "growth_units_pct": 4.09244964238058,
+    "growth_units_ml_raw_pct": -0.6109665709357892,
+    "growth_sales_pct": 12.146243485298513,
+    "top_category": "Muffin"
+  }
+}

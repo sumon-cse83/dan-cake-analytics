@@ -1,0 +1,172 @@
+\chapter{Literature Review}\label{ch:literature}
+
+This chapter places the project in the existing body of knowledge. It moves from the business case for
+analytics, through the process models and techniques used to build analytical systems, to the specific
+methods applied in this work. It closes by identifying the gap that the project addresses.
+
+\section{Business intelligence and analytics}
+\citet{chen2012} describe the evolution of business intelligence and analytics (BI\&A) in three stages. The
+first, BI\&A~1.0, centred on data warehouses and structured reporting. The second added web and unstructured
+data, and the third added mobile and sensor data. They argue that the main value lies in turning data into
+\emph{decisions}, not merely into reports. \citet{davenport2007} reached a similar conclusion from
+organisational case studies: firms that ``compete on analytics'' use statistical and predictive models
+routinely in their core processes rather than occasionally in projects. \citet{sharda2018} organise analytics
+into three levels. \emph{Descriptive} analytics asks what happened, \emph{predictive} analytics asks what will
+happen, and \emph{prescriptive} analytics asks what should be done. Most organisations remain at the descriptive
+level. The three management questions in the project proposal map directly onto this hierarchy, and the
+framework built here covers the descriptive and predictive levels while giving rule-based prescriptions.
+
+\citet{provost2013} emphasise \emph{data-analytic thinking}. Analytics is valuable only when a business problem
+has been framed precisely enough to be answered by data, and models must be judged by their effect on
+decisions, not by technical accuracy alone. \citet{shmueli2010} adds that explanatory and predictive modelling
+are different activities with different goals and validation methods. A model that explains past variation
+well may forecast poorly, and the reverse can also be true. This distinction shapes the present study. The
+explanatory analyses (EDA, hypothesis tests, elasticity regression) are kept separate from the predictive
+analyses (out-of-sample forecasting and classification), and each is evaluated on its own terms.
+
+\section{Process models for analytics projects}
+The Cross-Industry Standard Process for Data Mining (CRISP-DM) remains the most widely used methodology for
+analytics projects \citep{shearer2000}. Its six phases are business understanding, data understanding, data
+preparation, modelling, evaluation and deployment. They are iterative, and the model explicitly recognises that
+data preparation usually takes most of the effort. The ten-phase plan in the project proposal is a refinement
+of CRISP-DM. It adds explicit phases for feature engineering, dashboard development, system evaluation and
+documentation. \citet{han2012} describe a comparable knowledge-discovery process (cleaning, integration,
+selection, transformation, mining, evaluation and presentation), and the framework in \cref{ch:system} follows
+both.
+
+\section{Data quality and preprocessing}
+Real-world data are rarely ready for analysis. \citet{garcia2015} classify preprocessing into data cleaning
+(missing values, noise and outliers), integration, transformation (normalisation and discretisation) and
+reduction. They stress that the choice of technique should depend on the mechanism that produced the problem.
+For missing values, deletion is safe only when values are missing completely at random and few in number.
+Otherwise, imputation is preferable, and imputation from deterministic relationships between columns is the
+most accurate option of all. \citet{wickham2014} adds the principle of \emph{tidy data}: each variable forms a
+column, each observation a row, and each type of observational unit a table. This principle underlies the
+star-schema design used here.
+
+Outlier treatment requires particular care in business data. Statistical rules such as the $z$-score assume
+approximately normal data and are distorted by the very outliers they look for. The inter-quartile range (IQR)
+rule and the median absolute deviation (MAD) are more robust \citep{han2012}. Not every outlier is an error,
+however. A bulk order from a distributor is unusual but genuine, and deleting it would bias demand estimates
+downwards. The approach taken here therefore distinguishes \emph{impossible} values (domain-rule violations,
+which are corrected) from \emph{unusual} values (statistical outliers, which are flagged and kept).
+
+A further, often under-estimated risk is \emph{data leakage}: information that would not be available at
+prediction time slips into the training data. \citet{kaufman2012} show that leakage is common in published
+studies and competitions and that it produces models which look excellent in testing but fail in deployment.
+Typical sources are features computed from the target itself, rolling statistics that include the current
+period, and preprocessing parameters (for example, scaling constants or target encodings) estimated on the
+whole dataset instead of the training portion only. All three are avoided by design in this project.
+
+\section{Data warehousing}
+\citet{kimball2013} established dimensional modelling as the standard design for analytical databases. A
+central \emph{fact table} stores measurable events (here, sales transactions). Surrounding \emph{dimension
+tables} describe the context of each event (date, product, customer segment). The resulting star schema is easy
+to understand, efficient for aggregation queries and directly consumable by BI tools such as Power BI. A star
+schema is used in this project, implemented in SQLite for portability. The same SQL runs on PostgreSQL or MySQL.
+
+\section{Demand forecasting}
+\subsection{Statistical methods}
+Exponential smoothing dates back to the work of Holt and of \citet{winters1960}, who extended it to series with
+trend and seasonality. The Holt--Winters method and its modern state-space formulation remain strong benchmarks.
+So does the seasonal ARIMA (SARIMA) family \citep{hyndman2021}. Both model a single time series and give
+well-calibrated prediction intervals, but they cannot easily use additional explanatory variables or learn
+shared patterns across many related series.
+
+\subsection{Machine-learning methods}
+Machine-learning regressors treat forecasting as supervised learning. Lagged values, rolling statistics and
+calendar variables become features, and one global model can be trained across many series at once.
+Tree ensembles are the most common choice. Random forests average many decorrelated decision trees trained on
+bootstrap samples \citep{breiman2001}. Gradient boosting fits trees sequentially to the residuals of the current
+ensemble \citep{friedman2001}. XGBoost is a regularised and highly optimised implementation of gradient
+boosting \citep{chen2016}. Support vector machines and support vector regression fit a maximum-margin function
+in a kernel-induced feature space \citep{cortes1995}. $k$-nearest neighbours predicts from the most similar
+historical cases. \citet{hastie2009} and \citet{james2021} provide the theory behind these methods,
+particularly the bias--variance trade-off that motivates regularisation and hyper-parameter tuning.
+
+\subsection{Statistical versus machine-learning forecasting}
+\citet{makridakis2018} compared eight statistical and ten machine-learning methods on 1,045 monthly series.
+They found that, on average, simple statistical methods were more accurate than the machine-learning ones. They
+concluded that machine-learning forecasts must always be benchmarked against simple methods. Two consequences
+follow for this project. First, naive and seasonal-naive forecasts, together with Holt--Winters and SARIMA, are
+included as benchmarks. Second, the evaluation design follows forecasting best practice. Time-series data must
+not be randomly shuffled for validation, because doing so lets the model ``see the future''. Rolling-origin or
+expanding-window schemes are preferred \citep{bergmeir2012, hyndman2021}. Forecasts made for different
+hierarchical levels (product versus company) can be made coherent through reconciliation
+\citep{athanasopoulos2009}.
+
+\subsection{Accuracy measures}
+\citet{hyndman2006} review forecast accuracy measures. Scale-dependent measures (MAE, RMSE) are interpretable
+in the units of the data. Percentage errors (MAPE) are scale-free but explode when actual values are close to
+zero. Measures relative to a benchmark show whether a method adds value. This study therefore reports MAE,
+MSE, RMSE, $R^2$, MAPE and the weighted absolute percentage error (WAPE), together with the improvement over
+naive baselines.
+
+\section{Classification and evaluation}
+Classification predicts a categorical outcome. Logistic regression remains a strong, interpretable baseline,
+and tree ensembles often capture interactions better \citep{kuhn2013}. When the classes are imbalanced, as with
+large orders in this project, accuracy is misleading. A model that always predicts the majority class can look
+accurate while being useless. Precision, recall, the F1-score, the area under the ROC curve (ROC-AUC) and the
+area under the precision--recall curve are more informative. The decision threshold should be chosen on
+validation data to match the business cost of errors \citep{kuhn2013}.
+
+\section{Clustering and segmentation}
+Market segmentation is a foundation of marketing strategy \citep{kotler2016}. Data-driven segmentation usually
+relies on clustering. $K$-means partitions observations into $k$ groups by minimising within-cluster variance.
+Agglomerative (Ward) clustering builds a hierarchy of merges. Gaussian mixture models assume each cluster is a
+multivariate normal distribution \citep{han2012}. Because clustering has no ground truth, internal validity
+indices are used. These include the silhouette coefficient \citep{rousseeuw1987}, the Davies--Bouldin index
+\citep{davies1979} and the Calinski--Harabasz criterion.
+
+\section{Anomaly detection}
+Anomaly detection identifies observations that deviate from expected behaviour. Possible causes are data-entry
+errors, fraud or genuine but exceptional events. Classical approaches compute robust distances from a fitted
+expectation. The Isolation Forest \citep{liu2008} instead isolates points by random recursive partitioning:
+anomalies need fewer splits to be isolated, which gives an efficient and distribution-free score. It is a
+natural complement to rule-based checks.
+
+\section{Explainable machine learning}
+Managers rarely trust a model they cannot understand. Permutation importance measures how much a model's error
+increases when a feature is randomly shuffled \citep{breiman2001}. SHAP values, grounded in cooperative game
+theory, attribute each individual prediction additively to the input features \citep{lundberg2017}. Both are
+used here to show which factors drive demand forecasts and large orders.
+
+\section{Dashboards and visual decision support}
+\citet{few2013} defines a dashboard as a visual display of the most important information needed to achieve one
+or more objectives, arranged on a single screen so that it can be monitored at a glance. He warns against
+decorative charts, 3-D effects, gauges and colour used without meaning. He recommends instead clear
+comparisons, sparse ink and consistent encodings. These principles guided the design of the dashboard in
+\cref{ch:dashboard}. Modern open-source tools allow interactive dashboards to be built directly in the analysis
+language and published free of charge. Examples are the Python libraries pandas \citep{mckinney2022},
+scikit-learn \citep{pedregosa2011}, Plotly and Streamlit.
+
+\section{Research gap}
+The literature offers mature techniques for each component: data cleaning, warehousing, forecasting,
+classification, clustering, anomaly detection and dashboards. Studies and teaching materials, however, usually
+treat them in isolation. Many applied forecasting studies also omit naive benchmarks or validate with random
+splits, which makes their accuracy claims hard to trust \citep{makridakis2018, kaufman2012}. Few works show an
+\emph{end-to-end}, reproducible framework in which (i) preprocessing, modelling and reporting are linked
+automatically, (ii) evaluation is strictly time-ordered with benchmarks, and (iii) the outputs reach managers as
+explained predictions and recommendations rather than raw model scores. This project addresses that gap for a
+consumer-goods sales context in Bangladesh, a market that is under-represented in the published analytics
+literature.
+
+\begin{table}[htbp]\centering\small
+\caption{Summary of key literature and its use in this project}\label{tab:litsummary}
+\begin{tabularx}{\linewidth}{@{}p{3.6cm}X@{}}
+\toprule
+\textbf{Source} & \textbf{Contribution used in this project} \\ \midrule
+\citet{shearer2000} & CRISP-DM process model underlying the methodology \\
+\citet{chen2012}; \citet{sharda2018} & Descriptive--predictive--prescriptive framing of BI\&A \\
+\citet{garcia2015}; \citet{han2012} & Cleaning, imputation, outlier and transformation techniques \\
+\citet{kaufman2012} & Leakage-safe feature and validation design \\
+\citet{kimball2013} & Star-schema data store \\
+\citet{hyndman2021}; \citet{winters1960} & Holt--Winters, SARIMA, forecast reconciliation \\
+\citet{makridakis2018}; \citet{bergmeir2012} & Benchmarks and time-ordered validation \\
+\citet{breiman2001}; \citet{friedman2001}; \citet{chen2016} & Random forest, gradient boosting, XGBoost \\
+\citet{rousseeuw1987}; \citet{davies1979} & Cluster validity indices \\
+\citet{liu2008} & Isolation Forest anomaly detection \\
+\citet{lundberg2017} & SHAP explanations \\
+\citet{few2013} & Dashboard design principles \\ \bottomrule
+\end{tabularx}
+\end{table}

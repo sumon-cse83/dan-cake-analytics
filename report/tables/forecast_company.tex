@@ -1,0 +1,19 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Company-level monthly units forecast, test period Jan 2025--Sep 2026}
+\label{tab:company}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Model (company-total monthly units)} & \textbf{MAE} & \textbf{RMSE} & \textbf{MAPE \%} \\
+\midrule
+Holt-Winters (additive trend, multiplicative season) & 559 & 698 & 1.32 \\
+SARIMA(1,1,1)(0,1,1)$_{12}$ on log units & 687 & 806 & 1.65 \\
+Support Vector Regression one-step, summed over products & 712 & 875 & 1.68 \\
+Random Forest recursive, summed over products & 1,186 & 1,386 & 2.77 \\
+Seasonal naive (2024 repeated) & 2,549 & 2,817 & 6.00 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}

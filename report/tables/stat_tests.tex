@@ -1,0 +1,21 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Statistical tests of the main exploratory hypotheses}
+\label{tab:tests}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{llrrr}
+\toprule
+\textbf{Hypothesis (H0: no difference)} & \textbf{Test} & \textbf{Statistic} & \textbf{p-value} & \textbf{Effect size} \\
+\midrule
+Units/order by channel & Kruskal-Wallis & 43,269.88 & <0.001 & 0.0865 \\
+Units/order by region & Kruskal-Wallis & 27,261.36 & <0.001 & 0.0545 \\
+Units/order by customer type & Kruskal-Wallis & 2.62 & 0.623 & -0.0000 \\
+Daily sales by month (detrended) & Kruskal-Wallis & 510.92 & <0.001 & 0.2293 \\
+Discount \% vs units/order & Spearman rho & 0.00 & 0.479 & 0.0000 \\
+Large order vs channel & Chi-square & 31,777.06 & <0.001 & 0.2521 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\par\smallskip\parbox{0.92\linewidth}{\footnotesize\emph{Note:} Effect sizes: $\varepsilon^2$ for Kruskal--Wallis, $\rho^2$ for Spearman and Cram\'er's $V$ for chi-square. With $n=500{,}000$ almost any difference is `significant', so the effect size decides practical importance.}
+\end{table}

@@ -1,0 +1,90 @@
+{
+  "minmax": {
+    "Quantity": {
+      "min": 1.0,
+      "max": 135.0
+    },
+    "Market_Price_BDT": {
+      "min": 5.47,
+      "max": 354.32
+    },
+    "Discount_%": {
+      "min": 0.0,
+      "max": 13.13
+    },
+    "Unit_Selling_Price_BDT": {
+      "min": 5.12,
+      "max": 354.27
+    },
+    "Net_Sales_BDT": {
+      "min": 5.13,
+      "max": 28114.46
+    }
+  },
+  "zscore": {
+    "Quantity": {
+      "mean": 5.9508511569359435,
+      "std": 6.296341346480041
+    },
+    "Market_Price_BDT": {
+      "mean": 95.0712453471348,
+      "std": 64.70091610766644
+    },
+    "Discount_%": {
+      "mean": 2.348419943706409,
+      "std": 1.5775482541166181
+    },
+    "Unit_Selling_Price_BDT": {
+      "mean": 92.8351358717673,
+      "std": 63.201181938980454
+    },
+    "Net_Sales_BDT": {
+      "mean": 556.0343921696804,
+      "std": 807.1455923484576
+    }
+  },
+  "robust": {
+    "Quantity": {
+      "median": 4.0,
+      "iqr": 6.0
+    },
+    "Market_Price_BDT": {
+      "median": 98.96,
+      "iqr": 106.0
+    },
+    "Discount_%": {
+      "median": 2.03,
+      "iqr": 2.0700000000000003
+    },
+    "Unit_Selling_Price_BDT": {
+      "median": 96.38,
+      "iqr": 103.66
+    },
+    "Net_Sales_BDT": {
+      "median": 274.4,
+      "iqr": 567.945
+    }
+  },
+  "logz": {
+    "Quantity": {
+      "mean": 1.6581618360198578,
+      "std": 0.7179781141319556
+    },
+    "Market_Price_BDT": {
+      "mean": 4.24722944330498,
+      "std": 0.9000781624737538
+    },
+    "Discount_%": {
+      "mean": 1.1028390217957627,
+      "std": 0.4616625793762578
+    },
+    "Unit_Selling_Price_BDT": {
+      "mean": 4.223882386882539,
+      "std": 0.8995918730344146
+    },
+    "Net_Sales_BDT": {
+      "mean": 5.572629312534914,
+      "std": 1.2974322471788236
+    }
+  }
+}

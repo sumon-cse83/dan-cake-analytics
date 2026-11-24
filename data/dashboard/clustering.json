@@ -1,0 +1,176 @@
+{
+  "product_k": 5,
+  "product_scores": {
+    "silhouette": 0.234434118139845,
+    "davies_bouldin": 1.307392135644037,
+    "calinski_harabasz": 16.588288036599263
+  },
+  "product_segments": [
+    {
+      "segment": "Premium & gift packs",
+      "Products": 13,
+      "Sales": 105951691.7,
+      "Price": 155.85285307753568,
+      "UPO": 6.243135873254005,
+      "Growth": 7.847629583926837,
+      "Dec": 122.789136747337,
+      "Vol": 14.748765991813908,
+      "Share": 33.278889913602896,
+      "Examples": "Vanilla Muffin Gift Box, Chocolate Layer Cake Gift Box"
+    },
+    {
+      "segment": "Mature slow-growth lines",
+      "Products": 13,
+      "Sales": 101412285.22,
+      "Price": 130.48225591790364,
+      "UPO": 6.171963704504123,
+      "Growth": 2.349959536215308,
+      "Dec": 119.71615305054924,
+      "Vol": 15.24580426211641,
+      "Share": 31.85308532193335,
+      "Examples": "Vanilla Layer Cake Gift Box, Chocolate Velvet Cake"
+    },
+    {
+      "segment": "Core family packs",
+      "Products": 11,
+      "Sales": 89473968.08,
+      "Price": 133.42868842204527,
+      "UPO": 6.17240529428802,
+      "Growth": 4.925389256971456,
+      "Dec": 134.28810712404,
+      "Vol": 16.607121499530503,
+      "Share": 28.103320353756455,
+      "Examples": "Cappuccino Muffin Gift Pack, Strawberry Swiss Roll"
+    },
+    {
+      "segment": "Single-serve value packs",
+      "Products": 9,
+      "Sales": 13521161.24,
+      "Price": 23.452329301769378,
+      "UPO": 6.219037188231992,
+      "Growth": 6.038708769624772,
+      "Dec": 119.1896122740073,
+      "Vol": 14.113943663431128,
+      "Share": 4.246928285808902,
+      "Examples": "Chocolate Muffin, Chocolate Layer Cake"
+    },
+    {
+      "segment": "Niche & new lines",
+      "Products": 6,
+      "Sales": 8015971.7,
+      "Price": 24.121704253802434,
+      "UPO": 6.21815567680436,
+      "Growth": 3.979661213581809,
+      "Dec": 133.64607185349425,
+      "Vol": 18.62941831774313,
+      "Share": 2.5177761248984023,
+      "Examples": "Vanilla Muffin, Chocolate Pound Cake"
+    }
+  ],
+  "segment_k": 4,
+  "segment_scores": {
+    "silhouette": 0.23342469690071477,
+    "davies_bouldin": 1.4119133382790143,
+    "calinski_harabasz": 54.336965605109945
+  },
+  "market_segments": [
+    {
+      "cluster": 0,
+      "Cells": 99,
+      "Sales": 228907781.88,
+      "AOV": 518.3862082350901,
+      "UPO": 5.018013074169013,
+      "Growth": 14.775099177828372,
+      "Channels": "General Trade, Modern Trade",
+      "Regions": "Dhaka, Chattogram, Gazipur",
+      "Share": 71.89877529394411,
+      "segment": "Core retail trade"
+    },
+    {
+      "cluster": 1,
+      "Cells": 52,
+      "Sales": 71880403.62,
+      "AOV": 966.0829844383377,
+      "UPO": 9.95657519635537,
+      "Growth": 16.210780784707772,
+      "Channels": "Distributor",
+      "Regions": "Chattogram, Dhaka, Gazipur",
+      "Share": 22.577270835736197,
+      "segment": "Bulk distribution"
+    },
+    {
+      "cluster": 2,
+      "Cells": 50,
+      "Sales": 13407834.82,
+      "AOV": 341.39679467495114,
+      "UPO": 3.429131549046558,
+      "Growth": 16.749392911190476,
+      "Channels": "E-commerce, Modern Trade",
+      "Regions": "Barishal, Khulna, Rajshahi",
+      "Share": 4.21133303107563,
+      "segment": "Small-ticket online & regional"
+    },
+    {
+      "cluster": 3,
+      "Cells": 19,
+      "Sales": 4179057.62,
+      "AOV": 431.25877070093657,
+      "UPO": 4.1554656519630555,
+      "Growth": 33.2120593283567,
+      "Channels": "E-commerce, Modern Trade",
+      "Regions": "Cumilla, Khulna, Mymensingh",
+      "Share": 1.312620839244073,
+      "segment": "Emerging high-growth cells"
+    }
+  ],
+  "algorithm_comparison": [
+    {
+      "Problem": "Products",
+      "Algorithm": "K-Means",
+      "k": 5,
+      "Silhouette": 0.23657224304628693,
+      "Davies-Bouldin": 1.2713118985565885,
+      "Calinski-Harabasz": 16.199406447354793
+    },
+    {
+      "Problem": "Products",
+      "Algorithm": "Agglomerative (Ward)",
+      "k": 5,
+      "Silhouette": 0.21238313422435157,
+      "Davies-Bouldin": 1.1952723527436988,
+      "Calinski-Harabasz": 14.896891850253665
+    },
+    {
+      "Problem": "Products",
+      "Algorithm": "Gaussian Mixture",
+      "k": 5,
+      "Silhouette": 0.23261094492933762,
+      "Davies-Bouldin": 1.2365479778878885,
+      "Calinski-Harabasz": 15.337951001709754
+    },
+    {
+      "Problem": "Market cells",
+      "Algorithm": "K-Means",
+      "k": 4,
+      "Silhouette": 0.24251760815142917,
+      "Davies-Bouldin": 1.4967796326864131,
+      "Calinski-Harabasz": 54.193036935602336
+    },
+    {
+      "Problem": "Market cells",
+      "Algorithm": "Agglomerative (Ward)",
+      "k": 4,
+      "Silhouette": 0.24991981929303184,
+      "Davies-Bouldin": 1.4671256311883734,
+      "Calinski-Harabasz": 48.89990821421081
+    },
+    {
+      "Problem": "Market cells",
+      "Algorithm": "Gaussian Mixture",
+      "k": 4,
+      "Silhouette": 0.16544193893474915,
+      "Davies-Bouldin": 1.7532014034783392,
+      "Calinski-Harabasz": 42.36747458853952
+    }
+  ]
+}
