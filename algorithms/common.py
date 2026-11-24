@@ -125,6 +125,15 @@ def savefig(fig, name):
     print("Saved chart: algorithms/outputs/" + name)
 
 
+def save_fact(**facts):
+    """Store key numbers of a lesson (e.g. best k) in algorithms/outputs/facts.json - the report reads them."""
+    f = OUT / "facts.json"
+    data = json.loads(f.read_text()) if f.exists() else {}
+    data.update({k: (round(float(v), 4) if isinstance(v, (int, float, np.floating, np.integer)) else v)
+                 for k, v in facts.items()})
+    f.write_text(json.dumps(data, indent=2, sort_keys=True))
+
+
 def save_result(algorithm, problem, scores):
     """Add this lesson's final test score to algorithms/outputs/summary.json (to compare all lessons)."""
     f = OUT / "summary.json"

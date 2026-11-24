@@ -18,7 +18,7 @@ from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay, f1_score
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from common import ORDER_FEATS, classification_scores, load_orders, save_result, savefig, show, split_years
+from common import ORDER_FEATS, classification_scores, load_orders, save_fact, save_result, savefig, show, split_years
 
 orders = load_orders()
 s = split_years(orders)
@@ -87,5 +87,11 @@ ax[1].plot([0, 1], [0, 1], "k--", label="guessing"); ax[1].legend(); ax[1].set_t
 savefig(fig, "02_confusion_roc.png")
 # Confusion matrix rows = truth, columns = prediction. Diagonal = correct answers.
 
-# %% Step 8. Save the final score
+# %% Step 8. Save the final score (and key numbers for the report)
+p_at = [one.predict_proba(pd.DataFrame({"channel_region_avg_qty": [q]}))[0, 1] for q in (5, 10, 15)]
+save_fact(logit_one_b1=one.coef_[0][0], logit_p5=p_at[0], logit_p10=p_at[1], logit_p15=p_at[2],
+          logit_threshold=best_t, logit_top_feature=odds.index[0], logit_top_or=odds.iloc[0]["odds_ratio"],
+          base_order_acc=results["Baseline (always 'small')"]["accuracy"], large_share_train=train.large_order.mean(),
+          large_share_test=test.large_order.mean())
 save_result("Logistic Regression", "B_classification_large_order", results["Logistic, tuned threshold"])
+save_result("Baseline: always small", "B_classification_large_order", results["Baseline (always 'small')"])

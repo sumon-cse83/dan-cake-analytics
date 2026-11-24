@@ -11,8 +11,8 @@ in whole or in part, for any other degree or qualification.
 % ---------------------------------------------------------------- abstract
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
-Many organisations still base commercial decisions on spreadsheet reports. Those reports describe the past but
-rarely explain it or anticipate what comes next. This project designs, builds and evaluates an
+Many organisations still base commercial decisions on spreadsheet reports that describe the past but rarely
+explain it or anticipate what comes next. This project designs, builds and evaluates an
 \emph{intelligent data analytics and machine learning framework}. The framework links data preparation,
 exploratory analysis, predictive modelling and business-intelligence visualisation in a single, reproducible
 decision-support pipeline. It is demonstrated on \NRows sales transactions of Dan Cake products in Bangladesh
@@ -26,7 +26,8 @@ boosting, XGBoost, $k$-nearest neighbours and support vector regression against 
 baselines and against Holt--Winters and SARIMA models. \emph{Classification} predicts large orders with seven
 algorithms. \emph{Clustering} segments the product portfolio and the market. \emph{Anomaly detection} combines
 robust statistics with an Isolation Forest. All supervised models are trained on 2020--2024 and evaluated on
-\TestMonths later months that the models never saw.
+\TestMonths later months that the models never saw. A separate experiment for each of the nine algorithms
+named in the proposal explains how it learns and fails, and independently confirms the main results.
 
 Net sales grew by \CAGRSales\% a year, but volume grew by only \CAGRUnits\%. Price and mix therefore drove
 most of the growth, and discounts showed no measurable effect on demand. Sales are concentrated in Dhaka
@@ -34,13 +35,13 @@ most of the growth, and discounts showed no measurable effect on demand. Sales a
 absolute percentage error of \BestRegWAPE\%, an RMSE \GainVsSNaive\% lower than the seasonal-naive rule. At
 company level, Holt--Winters forecast monthly units with a mean absolute percentage error of only \HWMAPE\%.
 Large orders were moderately predictable (ROC-AUC \ClsAUC), and the sales channel was the dominant driver. The
-results are presented in an interactive web dashboard and turned into automatically generated, evidence-based
-recommendations. The study shows how a modest, open-source technology stack can move an organisation from
+results reach managers through a nine-page interactive dashboard and a project website, both deployed publicly
+at no cost, and through automatically generated, evidence-based recommendations. The study shows how a modest, open-source technology stack can move an organisation from
 descriptive reporting to predictive, data-driven decision-making.
 
 \vspace{4mm}
 \noindent\textbf{Keywords:} data analytics; machine learning; demand forecasting; business intelligence;
-decision support system; customer segmentation; anomaly detection; Python.
+decision support system; customer segmentation; anomaly detection; XGBoost; Streamlit; Python.
 
 % ---------------------------------------------------------------- acknowledgements
 \chapter*{Acknowledgements}

@@ -17,7 +17,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor, export_text, plot_tree
 
 from common import (MONTH_FEATS, ORDER_FEATS, SEED, classification_scores, load_monthly, load_orders,
-                    regression_scores, save_result, savefig, show, split_years)
+                    regression_scores, save_fact, save_result, savefig, show, split_years)
 
 s = split_years(load_orders())
 train, test = s["train"], s["test"]
@@ -80,6 +80,8 @@ reg_results = {
 }
 show(reg_results, "Problem A - monthly units, test 2025-2026 (lower MAE = better):")
 
-# %% Step 8. Save the final scores
+# %% Step 8. Save the final scores (and key numbers for the report)
+save_fact(dt_best_depth=best_depth, dt_top_feature=imp.index[0], dt_top_share=imp.iloc[0],
+          dt_fit_auc_d15=fit_auc[-1], dt_val_auc_d15=val_auc[-1], dt_val_auc_best=max(val_auc))
 save_result("Decision Tree", "B_classification_large_order", results[f"Decision Tree (depth {best_depth})"])
 save_result("Decision Tree", "A_regression_monthly_units", reg_results["Decision Tree Regressor"])

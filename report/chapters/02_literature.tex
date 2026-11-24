@@ -40,13 +40,18 @@ Real-world data are rarely ready for analysis. \citet{garcia2015} classify prepr
 reduction. They stress that the choice of technique should depend on the mechanism that produced the problem.
 For missing values, deletion is safe only when values are missing completely at random and few in number.
 Otherwise, imputation is preferable, and imputation from deterministic relationships between columns is the
-most accurate option of all. \citet{wickham2014} adds the principle of \emph{tidy data}: each variable forms a
+most accurate option of all. Textbooks on data mining make the same point. \citet{tan2019} and
+\citet{witten2017} devote substantial space to data quality before any modelling, and \citet{kuhn2019} show
+that the way predictors are constructed and encoded often matters more for accuracy than the choice of model.
+\citet{wickham2014} adds the principle of \emph{tidy data}: each variable forms a
 column, each observation a row, and each type of observational unit a table. This principle underlies the
 star-schema design used here.
 
 Outlier treatment requires particular care in business data. Statistical rules such as the $z$-score assume
 approximately normal data and are distorted by the very outliers they look for. The inter-quartile range (IQR)
-rule and the median absolute deviation (MAD) are more robust \citep{han2012}. Not every outlier is an error,
+rule and the median absolute deviation (MAD) are more robust \citep{han2012}. \citet{aggarwal2017} reviews
+outlier analysis in depth and stresses that the definition of an outlier depends on the application and on the
+model of ``normal'' behaviour that is assumed. Not every outlier is an error,
 however. A bulk order from a distributor is unusual but genuine, and deleting it would bias demand estimates
 downwards. The approach taken here therefore distinguishes \emph{impossible} values (domain-rule violations,
 which are corrected) from \emph{unusual} values (statistical outliers, which are flagged and kept).
@@ -64,25 +69,37 @@ central \emph{fact table} stores measurable events (here, sales transactions). S
 tables} describe the context of each event (date, product, customer segment). The resulting star schema is easy
 to understand, efficient for aggregation queries and directly consumable by BI tools such as Power BI. A star
 schema is used in this project, implemented in SQLite for portability. The same SQL runs on PostgreSQL or MySQL.
+\citet{kleppmann2017} discusses the wider design of data systems, in particular the separation of
+transaction-processing stores from analytical stores and the use of simple, stable file formats between
+processing stages. The framework follows this principle between its layers.
 
 \section{Demand forecasting}
 \subsection{Statistical methods}
 Exponential smoothing dates back to the work of Holt and of \citet{winters1960}, who extended it to series with
 trend and seasonality. The Holt--Winters method and its modern state-space formulation remain strong benchmarks.
-So does the seasonal ARIMA (SARIMA) family \citep{hyndman2021}. Both model a single time series and give
+So does the seasonal ARIMA (SARIMA) family, whose identification, estimation and diagnostic-checking cycle was
+set out by \citet{box2015} \citep[see also][]{hyndman2021}. Both model a single time series and give
 well-calibrated prediction intervals, but they cannot easily use additional explanatory variables or learn
 shared patterns across many related series.
 
 \subsection{Machine-learning methods}
 Machine-learning regressors treat forecasting as supervised learning. Lagged values, rolling statistics and
 calendar variables become features, and one global model can be trained across many series at once.
-Tree ensembles are the most common choice. Random forests average many decorrelated decision trees trained on
+The simplest such learner is linear regression, whose estimation, diagnostics and assumptions are treated
+comprehensively by \citet{montgomery2021}. Decision trees, formalised in the CART methodology of
+\citet{breiman1984}, split the data recursively into homogeneous groups and form the building block of the
+ensembles. Tree ensembles are the most common choice. Random forests average many decorrelated decision trees trained on
 bootstrap samples \citep{breiman2001}. Gradient boosting fits trees sequentially to the residuals of the current
 ensemble \citep{friedman2001}. XGBoost is a regularised and highly optimised implementation of gradient
 boosting \citep{chen2016}. Support vector machines and support vector regression fit a maximum-margin function
-in a kernel-induced feature space \citep{cortes1995}. $k$-nearest neighbours predicts from the most similar
-historical cases. \citet{hastie2009} and \citet{james2021} provide the theory behind these methods,
-particularly the bias--variance trade-off that motivates regularisation and hyper-parameter tuning.
+in a kernel-induced feature space \citep{cortes1995, scholkopf2002}. $k$-nearest neighbours predicts from the
+most similar historical cases, a method whose error was shown by \citet{cover1967} to be at most twice the
+Bayes error rate as the sample grows. \citet{hastie2009} and \citet{james2021} provide the theory behind these
+methods, particularly the bias--variance trade-off that motivates regularisation and hyper-parameter tuning.
+\citet{bishop2006} and \citet{murphy2022} give the probabilistic view of the same models, while
+\citet{kelleher2020}, \citet{geron2022} and \citet{raschka2022} show how they are applied in practice, with
+worked predictive-analytics case studies and scikit-learn implementations. These books were the main guides for
+the algorithm-level study in \cref{ch:algorithms}.
 
 \subsection{Statistical versus machine-learning forecasting}
 \citet{makridakis2018} compared eight statistical and ten machine-learning methods on 1,045 monthly series.
@@ -103,8 +120,9 @@ MSE, RMSE, $R^2$, MAPE and the weighted absolute percentage error (WAPE), togeth
 naive baselines.
 
 \section{Classification and evaluation}
-Classification predicts a categorical outcome. Logistic regression remains a strong, interpretable baseline,
-and tree ensembles often capture interactions better \citep{kuhn2013}. When the classes are imbalanced, as with
+Classification predicts a categorical outcome. Logistic regression remains a strong, interpretable baseline:
+its coefficients are log odds ratios, and \citet{hosmer2013} describe how to build, assess and interpret such
+models. Tree ensembles often capture interactions better \citep{kuhn2013}. When the classes are imbalanced, as with
 large orders in this project, accuracy is misleading. A model that always predicts the majority class can look
 accurate while being useless. Precision, recall, the F1-score, the area under the ROC curve (ROC-AUC) and the
 area under the precision--recall curve are more informative. The decision threshold should be chosen on
@@ -112,7 +130,9 @@ validation data to match the business cost of errors \citep{kuhn2013}.
 
 \section{Clustering and segmentation}
 Market segmentation is a foundation of marketing strategy \citep{kotler2016}. Data-driven segmentation usually
-relies on clustering. $K$-means partitions observations into $k$ groups by minimising within-cluster variance.
+relies on clustering. $K$-means, introduced by \citet{macqueen1967}, partitions observations into $k$ groups by
+minimising within-cluster variance. \citet{kaufman1990} and \citet{tan2019} discuss its assumptions and
+alternatives, including partitioning around medoids and hierarchical methods.
 Agglomerative (Ward) clustering builds a hierarchy of merges. Gaussian mixture models assume each cluster is a
 multivariate normal distribution \citep{han2012}. Because clustering has no ground truth, internal validity
 indices are used. These include the silhouette coefficient \citep{rousseeuw1987}, the Davies--Bouldin index
@@ -123,22 +143,27 @@ Anomaly detection identifies observations that deviate from expected behaviour. 
 errors, fraud or genuine but exceptional events. Classical approaches compute robust distances from a fitted
 expectation. The Isolation Forest \citep{liu2008} instead isolates points by random recursive partitioning:
 anomalies need fewer splits to be isolated, which gives an efficient and distribution-free score. It is a
-natural complement to rule-based checks.
+natural complement to rule-based checks \citep{aggarwal2017}.
 
 \section{Explainable machine learning}
 Managers rarely trust a model they cannot understand. Permutation importance measures how much a model's error
 increases when a feature is randomly shuffled \citep{breiman2001}. SHAP values, grounded in cooperative game
-theory, attribute each individual prediction additively to the input features \citep{lundberg2017}. Both are
-used here to show which factors drive demand forecasts and large orders.
+theory, attribute each individual prediction additively to the input features \citep{lundberg2017}.
+\citet{molnar2022} surveys these and other interpretation methods and distinguishes models that are
+interpretable by design (linear models, short trees) from post-hoc explanations of complex models. Both kinds
+are used here to show which factors drive demand forecasts and large orders.
 
 \section{Dashboards and visual decision support}
 \citet{few2013} defines a dashboard as a visual display of the most important information needed to achieve one
 or more objectives, arranged on a single screen so that it can be monitored at a glance. He warns against
 decorative charts, 3-D effects, gauges and colour used without meaning. He recommends instead clear
-comparisons, sparse ink and consistent encodings. These principles guided the design of the dashboard in
+comparisons, sparse ink and consistent encodings. \citet{tufte2001} expresses the same idea as maximising the
+\emph{data-ink ratio}, and \citet{knaflic2015} shows how to turn a chart into a business message by removing
+clutter and directing attention to the point that matters. These principles guided the design of the dashboard in
 \cref{ch:dashboard}. Modern open-source tools allow interactive dashboards to be built directly in the analysis
 language and published free of charge. Examples are the Python libraries pandas \citep{mckinney2022},
-scikit-learn \citep{pedregosa2011}, Plotly and Streamlit.
+scikit-learn \citep{pedregosa2011}, Plotly and Streamlit, whose use for data science is described by
+\citet{vanderplas2016}.
 
 \section{Research gap}
 The literature offers mature techniques for each component: data cleaning, warehousing, forecasting,
@@ -170,3 +195,64 @@ literature.
 \citet{few2013} & Dashboard design principles \\ \bottomrule
 \end{tabularx}
 \end{table}
+
+\section{Core textbooks}\label{sec:books}
+Alongside the research papers, the project rests on a body of textbooks. \Cref{tab:books} lists the 34 books
+consulted, grouped by subject, with the part of this work that each one informed. They range from the
+foundations of statistical learning and forecasting to the practical engineering of data systems and the
+communication of results to managers.
+
+\begingroup\small
+\setlength{\LTcapwidth}{\linewidth}
+\begin{longtable}{@{}r >{\raggedright\arraybackslash}p{6.6cm} >{\raggedright\arraybackslash}p{5.9cm}@{}}
+\caption{Textbooks consulted and their use in the project}\label{tab:books}\\
+\toprule
+\textbf{\#} & \textbf{Book} & \textbf{Used for} \\ \midrule
+\endfirsthead
+\toprule
+\textbf{\#} & \textbf{Book} & \textbf{Used for} \\ \midrule
+\endhead
+\bottomrule
+\endfoot
+\multicolumn{3}{@{}l}{\emph{Business analytics and decision-making}} \\
+1 & \citet{davenport2007}, \emph{Competing on Analytics} & business case for analytics (\cref{ch:intro}) \\
+2 & \citet{provost2013}, \emph{Data Science for Business} & data-analytic thinking, problem framing \\
+3 & \citet{sharda2018}, \emph{Business Intelligence, Analytics, and Data Science} & descriptive--predictive--prescriptive framing \\
+4 & \citet{kotler2016}, \emph{Marketing Management} & market segmentation (\cref{ch:models}) \\
+\multicolumn{3}{@{}l}{\emph{Data mining and data preparation}} \\
+5 & \citet{han2012}, \emph{Data Mining: Concepts and Techniques} & knowledge-discovery process, outlier rules \\
+6 & \citet{tan2019}, \emph{Introduction to Data Mining} & data quality, clustering \\
+7 & \citet{witten2017}, \emph{Data Mining: Practical Machine Learning Tools} & preprocessing and evaluation practice \\
+8 & \citet{garcia2015}, \emph{Data Preprocessing in Data Mining} & missing values, imputation hierarchy (\cref{ch:system}) \\
+9 & \citet{kuhn2019}, \emph{Feature Engineering and Selection} & leakage-safe features, encodings \\
+10 & \citet{aggarwal2017}, \emph{Outlier Analysis} & outlier and anomaly detection \\
+\multicolumn{3}{@{}l}{\emph{Statistical and machine learning}} \\
+11 & \citet{hastie2009}, \emph{The Elements of Statistical Learning} & bias--variance, ensembles, theory \\
+12 & \citet{james2021}, \emph{An Introduction to Statistical Learning} & regression, classification, resampling \\
+13 & \citet{bishop2006}, \emph{Pattern Recognition and Machine Learning} & probabilistic view of classifiers and kernels \\
+14 & \citet{murphy2022}, \emph{Probabilistic Machine Learning} & modern treatment of all supervised models \\
+15 & \citet{kuhn2013}, \emph{Applied Predictive Modeling} & tuning, imbalanced classes, thresholds \\
+16 & \citet{kelleher2020}, \emph{Fundamentals of ML for Predictive Data Analytics} & worked predictive-analytics cases (\cref{ch:algorithms}) \\
+17 & \citet{geron2022}, \emph{Hands-On Machine Learning} & scikit-learn practice, model tuning \\
+18 & \citet{raschka2022}, \emph{Machine Learning with PyTorch and Scikit-Learn} & pipelines, scaling, evaluation \\
+19 & \citet{montgomery2021}, \emph{Introduction to Linear Regression Analysis} & linear regression and diagnostics \\
+20 & \citet{hosmer2013}, \emph{Applied Logistic Regression} & logistic regression and odds ratios \\
+21 & \citet{breiman1984}, \emph{Classification and Regression Trees} & decision trees (CART) \\
+22 & \citet{scholkopf2002}, \emph{Learning with Kernels} & support vector machines and kernels \\
+23 & \citet{kaufman1990}, \emph{Finding Groups in Data} & cluster analysis and silhouette \\
+24 & \citet{molnar2022}, \emph{Interpretable Machine Learning} & feature importance, SHAP, explanations \\
+\multicolumn{3}{@{}l}{\emph{Forecasting and econometrics}} \\
+25 & \citet{hyndman2021}, \emph{Forecasting: Principles and Practice} & Holt--Winters, accuracy measures, reconciliation \\
+26 & \citet{box2015}, \emph{Time Series Analysis: Forecasting and Control} & SARIMA modelling \\
+27 & \citet{wooldridge2020}, \emph{Introductory Econometrics} & fixed-effects price elasticity (\cref{ch:eda}) \\
+\multicolumn{3}{@{}l}{\emph{Data engineering and tools}} \\
+28 & \citet{kimball2013}, \emph{The Data Warehouse Toolkit} & star schema (\cref{ch:system}) \\
+29 & \citet{kleppmann2017}, \emph{Designing Data-Intensive Applications} & layered data-system design \\
+30 & \citet{mckinney2022}, \emph{Python for Data Analysis} & pandas data handling \\
+31 & \citet{vanderplas2016}, \emph{Python Data Science Handbook} & NumPy, pandas, Matplotlib, scikit-learn \\
+\multicolumn{3}{@{}l}{\emph{Visualisation and communication}} \\
+32 & \citet{few2013}, \emph{Information Dashboard Design} & dashboard design (\cref{ch:dashboard}) \\
+33 & \citet{tufte2001}, \emph{The Visual Display of Quantitative Information} & data-ink ratio, honest charts \\
+34 & \citet{knaflic2015}, \emph{Storytelling with Data} & presenting insights to managers \\
+\end{longtable}
+\endgroup

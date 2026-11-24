@@ -18,7 +18,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from common import (MONTH_FEATS, ORDER_FEATS, classification_scores, load_monthly, load_orders,
-                    regression_scores, save_result, savefig, show, split_years)
+                    regression_scores, save_fact, save_result, savefig, show, split_years)
 
 s = split_years(load_orders())
 train, test = s["train"], s["test"]
@@ -29,8 +29,10 @@ def auc_2024(model):
     model.fit(s["fit"][ORDER_FEATS], s["fit"]["large_order"])
     return roc_auc_score(s["val"]["large_order"], model.predict_proba(s["val"][ORDER_FEATS])[:, 1])
 
-print(f"\nk=25 without scaling: AUC on 2024 = {auc_2024(KNeighborsClassifier(n_neighbors=25)):.3f}")
-print(f"k=25 with scaling   : AUC on 2024 = {auc_2024(make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=25))):.3f}")
+knn_raw = auc_2024(KNeighborsClassifier(n_neighbors=25))
+knn_scaled = auc_2024(make_pipeline(StandardScaler(), KNeighborsClassifier(n_neighbors=25)))
+print(f"\nk=25 without scaling: AUC on 2024 = {knn_raw:.3f}")
+print(f"k=25 with scaling   : AUC on 2024 = {knn_scaled:.3f}")
 # Without scaling, "distance" is almost only units_lag_1 (values in thousands) - other columns are ignored.
 
 # %% Step 3. Choose k on 2024
@@ -95,6 +97,8 @@ reg_results = {
 show(reg_results, "Problem A - monthly units, test 2025-2026 (lower MAE = better):")
 # weights="distance": closer neighbours count more than far ones.
 
-# %% Step 7. Save the final scores
+# %% Step 7. Save the final scores (and key numbers for the report)
+save_fact(knn_raw_auc=knn_raw, knn_scaled_auc=knn_scaled, knn_best_k=best_k, knn_k1_fit_auc=tune.AUC_learned_data.iloc[0],
+          knn_k1_val_auc=tune.AUC_2024.iloc[0], knn_reg_k=best[0])
 save_result("KNN", "B_classification_large_order", results[f"KNN, threshold {thr:.2f}"])
 save_result("KNN", "A_regression_monthly_units", reg_results[f"KNN Regressor (k={best[0]})"])

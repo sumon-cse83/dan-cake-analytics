@@ -17,7 +17,7 @@ import pandas as pd
 from xgboost import XGBClassifier, XGBRegressor
 
 from common import (MONTH_FEATS, ORDER_FEATS, SEED, classification_scores, load_monthly, load_orders,
-                    regression_scores, save_result, savefig, show, split_years)
+                    regression_scores, save_fact, save_result, savefig, show, split_years)
 
 s = split_years(load_orders())
 train, test = s["train"], s["test"]
@@ -81,6 +81,8 @@ reg_results = {
 }
 show(reg_results, "Problem A - monthly units, test 2025-2026 (lower MAE = better):")
 
-# %% Step 6. Save the final scores
+# %% Step 6. Save the final scores (and key numbers for the report)
+save_fact(xgb_best_n=best_n, xgb_val_auc=xgb.best_score, xgb_pos_weight=pos_weight, xgb_reg_trees=n_reg,
+          xgb_top_feature=gain.index[0], xgb_top_gain=gain.iloc[0])
 save_result("XGBoost", "B_classification_large_order", results["XGBoost"])
 save_result("XGBoost", "A_regression_monthly_units", reg_results[f"XGBoost Regressor ({n_reg} trees)"])

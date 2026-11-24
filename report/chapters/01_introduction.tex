@@ -76,8 +76,10 @@ project contributes:
         models, on a real-scale business dataset;
   \item an explanation layer (price--volume decomposition, fixed-effects elasticity, permutation importance and
         SHAP values) that answers the \emph{why} question rather than reporting accuracy alone;
-  \item a free, publicly deployable dashboard and project website, and an automatic insight generator that
-        turns metrics into recommendations.
+  \item an algorithm-level study of the nine algorithms named in the proposal, with one transparent,
+        reproducible experiment per algorithm, which independently confirms the production results;
+  \item a dashboard and project website that are publicly deployed on free platforms with continuous
+        deployment, and an automatic insight generator that turns metrics into recommendations.
 \end{itemize}
 
 \section{Structure of the report}
@@ -85,6 +87,8 @@ project contributes:
 learning and dashboards. \Cref{ch:method} sets out the research methodology. \Cref{ch:system} describes the
 architecture of the framework, the dataset and the preprocessing pipeline. \Cref{ch:eda} presents the
 exploratory analysis. \Cref{ch:models} reports the development and evaluation of the machine-learning models.
-\Cref{ch:dashboard} describes the dashboard and the decision-support layer. \Cref{ch:discussion} discusses the
+\Cref{ch:algorithms} studies each of the nine machine-learning algorithms separately: its principle, its
+settings, its behaviour on the Dan Cake data and its practical strengths and weaknesses. \Cref{ch:dashboard}
+presents the dashboard page by page, its public deployment and the decision-support layer. \Cref{ch:discussion} discusses the
 findings, answers the research questions and states the limitations. \Cref{ch:conclusion} concludes and
 proposes future work.

@@ -18,7 +18,7 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.tree import DecisionTreeRegressor
 
 from common import (MONTH_FEATS, ORDER_FEATS, SEED, classification_scores, load_monthly, load_orders,
-                    regression_scores, save_result, savefig, show, split_years)
+                    regression_scores, save_fact, save_result, savefig, show, split_years)
 
 s = split_years(load_monthly())
 train, test = s["train"], s["test"]
@@ -80,6 +80,9 @@ clf_results = {
 }
 show(clf_results, "Problem B - large order, test 2025-2026 (higher = better):")
 
-# %% Step 6. Save the final scores
+# %% Step 6. Save the final scores (and key numbers for the report)
+manual = np.full(len(y), y.mean())
+save_fact(gb_manual_start=mean_absolute_error(y, manual), gb_manual_after5=mean_absolute_error(y, pred),
+          gb_rate=best["rate"], gb_trees=best["n"], gb_val_mae=best["mae"], gb_top_feature=imp.index[0])
 save_result("Gradient Boosting", "A_regression_monthly_units", results["Gradient Boosting"])
 save_result("Gradient Boosting", "B_classification_large_order", clf_results[f"GB Classifier, threshold {thr:.2f}"])

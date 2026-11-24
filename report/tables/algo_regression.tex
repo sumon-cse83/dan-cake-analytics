@@ -1,0 +1,17 @@
+\begin{table}[htbp]\centering\small
+\caption{Problem A, monthly units per product: test results 2025--2026 of the algorithm lessons (sorted by MAE; best in bold)}\label{tab:algoreg}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Algorithm} & \textbf{MAE} & \textbf{RMSE} & \textbf{MAPE (\%)} & \textbf{$R^2$} \\ \midrule
+\textbf{XGBoost} & \textbf{96.9} & \textbf{124.9} & \textbf{13.0} & \textbf{0.699} \\
+Random Forest & 97.6 & 125.4 & 12.5 & 0.696 \\
+SVM & 99.8 & 125.0 & 14.0 & 0.698 \\
+Linear Regression & 100.8 & 126.3 & 14.2 & 0.692 \\
+Gradient Boosting & 102.6 & 132.1 & 13.9 & 0.663 \\
+KNN & 102.6 & 132.1 & 13.9 & 0.663 \\
+Decision Tree & 108.0 & 139.8 & 13.5 & 0.623 \\
+\midrule
+\emph{Baseline: same as last month} & 139.8 & 176.2 & 18.0 & 0.400 \\
+\bottomrule
+\end{tabular}
+\end{table}

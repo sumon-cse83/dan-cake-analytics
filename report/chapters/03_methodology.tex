@@ -3,7 +3,9 @@
 \section{Research approach}
 The study follows a \emph{design-science} and \emph{quantitative} approach. Its main output is an artefact, the
 analytics framework, which is built to solve a stated business problem and is then evaluated rigorously against
-explicit criteria. The empirical analysis is quantitative and uses a large secondary dataset of sales
+explicit criteria. This matches the guidelines of \citet{hevner2004} for design-science research in information
+systems: the artefact must address a relevant problem, be evaluated rigorously, and be communicated to both
+technical and managerial audiences. The empirical analysis is quantitative and uses a large secondary dataset of sales
 transactions. The overall lifecycle follows CRISP-DM \citep{shearer2000} as refined into ten phases in the
 project proposal (\cref{fig:lifecycle}).
 
@@ -90,14 +92,25 @@ The exploratory phase used descriptive statistics, Spearman rank correlation (ro
 distributions found), Kruskal--Wallis tests for differences between groups, and chi-square tests of
 independence. Because the sample is very large, almost any difference is statistically significant.
 \emph{Effect sizes} ($\varepsilon^2$, $\rho^2$ and Cram\'er's $V$) were therefore reported and used to judge
-practical importance. A fixed-effects log--log regression estimated the price elasticity of demand.
+practical importance. A fixed-effects log--log regression estimated the price elasticity of demand
+\citep{wooldridge2020}.
+
+\section{Two complementary modelling studies}
+The predictive work was carried out twice, with different aims. The \emph{production study}
+(\cref{ch:models}) builds the best possible models for the business: rich features, randomised hyper-parameter
+search over expanding-window folds, statistical benchmarks and forecast reconciliation. The
+\emph{algorithm-level study} (\cref{ch:algorithms}) examines each of the nine algorithms named in the proposal
+separately, with a simpler shared feature set, a single 2024 validation year and one transparent script per
+algorithm. Its aims are to explain how each algorithm learns and fails, and to check the production results
+with an independent implementation.
 
 \section{Tools and environment}
 The framework was implemented in Python~3 with pandas and NumPy for data handling \citep{mckinney2022},
 SciPy and statsmodels for statistics and time-series models, scikit-learn for machine learning
 \citep{pedregosa2011}, XGBoost for gradient boosting \citep{chen2016}, Matplotlib and Plotly for
-visualisation, SQLite for the dimensional data store, and Streamlit for the web dashboard. The report was
-typeset in \LaTeX. All random processes use a fixed seed (42), so every result can be reproduced exactly.
+visualisation, SQLite for the dimensional data store, and Streamlit for the web dashboard. The code is
+version-controlled with Git and published on GitHub. The dashboard is deployed on Streamlit Community Cloud and
+the website on GitHub Pages. The report was typeset in \LaTeX. All random processes use a fixed seed (42), so every result can be reproduced exactly.
 
 \section{Ethical considerations}
 The dataset contains no names, contact details or other personally identifiable information. Customers are

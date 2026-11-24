@@ -41,6 +41,12 @@
       "RMSE": 124.97,
       "MAPE_%": 14.0,
       "R2": 0.698
+    },
+    "Baseline: same as last month": {
+      "MAE": 139.79,
+      "RMSE": 176.21,
+      "MAPE_%": 18.0,
+      "R2": 0.4
     }
   },
   "B_classification_large_order": {
@@ -92,6 +98,13 @@
       "recall": 0.494,
       "F1": 0.439,
       "ROC_AUC": 0.712
+    },
+    "Baseline: always small": {
+      "accuracy": 0.774,
+      "precision": 0.0,
+      "recall": 0.0,
+      "F1": 0.0,
+      "ROC_AUC": 0.5
     }
   },
   "C_clustering_products": {

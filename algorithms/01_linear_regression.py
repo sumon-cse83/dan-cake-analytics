@@ -17,7 +17,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from common import MONTH_FEATS, load_monthly, regression_scores, save_result, savefig, show, split_years
+from common import MONTH_FEATS, load_monthly, regression_scores, save_fact, save_result, savefig, show, split_years
 
 pm = load_monthly()
 s = split_years(pm)
@@ -79,5 +79,8 @@ row = test.sort_values("month_index").iloc[[-1]]
 print(f"\nProduct {row.Product_ID.iloc[0]}, month {int(row.month.iloc[0])}/{int(row.year.iloc[0])}: "
       f"predicted {lr.predict(row[MONTH_FEATS])[0]:.0f} units, real {row.units.iloc[0]:.0f} units")
 
-# %% Step 8. Save the final score
+# %% Step 8. Save the final score (and key numbers for the report)
+save_fact(lin_b0=b0, lin_b1=b1, lin_top_feature=coef.index[0], lin_top_coef=coef.iloc[0],
+          lin_one_mae=results["Linear, 1 input"]["MAE"], base_month_mae=results["Baseline (= last month)"]["MAE"])
 save_result("Linear Regression", "A_regression_monthly_units", results["Linear, all inputs"])
+save_result("Baseline: same as last month", "A_regression_monthly_units", results["Baseline (= last month)"])

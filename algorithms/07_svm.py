@@ -24,7 +24,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC, SVR
 
 from common import (MONTH_FEATS, ORDER_FEATS, SEED, classification_scores, load_monthly, load_orders,
-                    regression_scores, save_result, savefig, show, split_years)
+                    regression_scores, save_fact, save_result, savefig, show, split_years)
 
 s = split_years(load_orders())
 train, test = s["train"], s["test"]
@@ -53,6 +53,7 @@ print(f"\nwithout scaling: AUC {a_raw:.3f} ({t_raw:.1f}s)   |   with scaling: AU
 for kernel in ("linear", "rbf"):
     a, t = val_auc(make_pipeline(StandardScaler(), SVC(kernel=kernel, class_weight="balanced")))
     print(f"kernel {kernel:<6}: AUC on 2024 = {a:.3f}  ({t:.1f}s)")
+    save_fact(**{f"svm_{kernel}_auc": a})
 
 # %% Step 4. Tune C (and gamma = how far one point's influence reaches in the RBF kernel)
 grid = []
@@ -104,7 +105,11 @@ reg_results = {
 show(reg_results, "Problem A - monthly units, test 2025-2026 (lower MAE = better):")
 # If the linear kernel wins here, the relationship is mostly a straight line (see lesson 1).
 
-# %% Step 7. Save the final scores
+# %% Step 7. Save the final scores (and key numbers for the report)
+save_fact(svm_raw_auc=a_raw, svm_scaled_auc=a_sc, svm_best_C=float(best["C"]), svm_best_gamma=str(best["gamma"]),
+          svm_best_val_auc=float(best["AUC_2024"]), svm_n_support=int(svm[-1].n_support_.sum()),
+          svm_train_rows=len(final_train))
 best_reg = min(["SVR (RBF kernel)", "SVR (linear kernel)"], key=lambda k: reg_results[k]["MAE"])
+save_fact(svr_best=best_reg)
 save_result("SVM", "B_classification_large_order", results["SVM (RBF kernel)"])
 save_result("SVM", "A_regression_monthly_units", reg_results[best_reg])

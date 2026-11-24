@@ -26,7 +26,12 @@ product demand, \BestReg was most accurate. \BestRec was most robust in the mult
 level, the classical Holt--Winters model beat all machine-learning alternatives. For classification, logistic
 regression matched the tree ensembles. This pattern agrees with \citet{makridakis2018}. Good features, a sound
 validation design and benchmarking matter more than the choice of algorithm. A combined approach, with
-statistical totals reconciled to machine-learned product mixes, is the most useful in practice.
+statistical totals reconciled to machine-learned product mixes, is the most useful in practice. The
+algorithm-level study in \cref{ch:algorithms} reached the same conclusion with independent code and a simpler
+feature set. There, \AlgRegBest had the lowest monthly error (MAE \AlgRegBestMAE units), but linear regression
+(\AlgLinMAE) and the random forest (\AlgRFMAE) were within a few units of it, and the seven classifiers spanned
+only \AlgClsWorstAUC to \AlgClsBestAUC in ROC-AUC. Because the exact ranking of the leading models changes with
+the features and tuning, the choice among them should favour simplicity and explainability.
 
 \paragraph{RQ4: What patterns exist in the historical data?}
 Strong year-end seasonality peaks in \PeakMonth. Growth is steady but price-driven, and demand is
@@ -46,7 +51,9 @@ limit lies in the information available, not in the models.
 Through an interactive dashboard organised around the management questions. It should have global filters,
 KPI cards and simple, sorted charts; it should always show uncertainty for forecasts; and it should state
 insights in plain language, each with an action. Publishing the dashboard and a summary website on free
-platforms removes cost and installation barriers.
+platforms removes cost and installation barriers. In this project both are live (\cref{tab:links}), every page
+has its own shareable address, and continuous deployment means that managers always see the latest results
+without any action on their part.
 
 \paragraph{RQ7: How much does predictive analytics add to historical reporting?}
 A historical report can at best repeat last year's pattern, which is the seasonal-naive rule. The
@@ -94,4 +101,6 @@ safety stock is needed.
 Strict time-ordered evaluation with benchmarks was the most important methodological decision. Random
 cross-validation would have produced flattering but misleading accuracy figures. Generating every reported
 number from code turned out to be valuable as well: analyses were re-run many times as the work progressed, and
-the report always remained consistent. Both practices are recommended for future projects of this kind.
+the report always remained consistent. Running a second, independent modelling study (\cref{ch:algorithms})
+proved a cheap and effective way to test whether the conclusions depended on one implementation. Both practices
+are recommended for future projects of this kind.

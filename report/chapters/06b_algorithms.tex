@@ -1,0 +1,378 @@
+\chapter[Algorithm-Level Study of Nine ML Methods]{Algorithm-Level Study of\\ Nine Machine-Learning Methods}\label{ch:algorithms}
+
+Section~7.4 of the project proposal named nine candidate algorithms: linear regression, logistic regression,
+decision tree, random forest, gradient boosting, XGBoost, support vector machine, $k$-nearest neighbours and
+$K$-means clustering. \Cref{ch:models} used them inside the production pipeline, with rich feature sets,
+randomised hyper-parameter search and statistical benchmarks. This chapter takes a complementary view. Each
+algorithm is studied \emph{on its own}, in a separate and fully transparent experiment, in order to show
+\emph{how} it learns, which settings control it, how it fails and what it contributes to the business problem.
+The experiments also serve as an independent check of \cref{ch:models}: they use a deliberately simpler feature
+set and separate code, so agreement between the two chapters strengthens the conclusions.
+
+\section{Common experimental protocol}\label{sec:algoprotocol}
+\subsection{Three problems}
+All nine experiments use the same data and the same rules, implemented once in
+\path{algorithms/common.py}:
+\begin{itemize}
+  \item \textbf{Problem A -- regression.} Monthly units of each product. Transactions are aggregated into one row
+        per product and month, described by nine features that are known before the month starts: month, a
+        December indicator, product age, mean log price, mean discount, pack weight, and three history features
+        (units last month, units in the same month last year, and the mean of the previous three months).
+  \item \textbf{Problem B -- classification.} Whether an order is large ($\geq 10$ units), predicted from the 18
+        order-level features selected in the feature-engineering step (calendar, price, pack, history and the
+        smoothed channel~$\times$~region order size). Large orders form \LargeShareTrain of training orders and
+        \LargeShareTest of test orders, so the classes are imbalanced. A fixed random sample of 15,000 orders
+        from 2020--2024 and 15,000 from 2025--2026 is used by every algorithm. The sample keeps the slower
+        algorithms (SVM, KNN) practical and makes the comparison fair.
+  \item \textbf{Problem C -- clustering.} One profile per product (\KMProducts products) from 2020--2024: average
+        price, units per month on sale, average order size, average discount, share of large orders and the
+        share of December sales. There is no target variable.
+\end{itemize}
+
+\subsection{Four-way time split}
+Every supervised experiment follows the same sequence (\cref{fig:split}). Settings are chosen on 2024
+(validation) after learning from 2020--2023. The chosen setting is then refitted on 2020--2024, and the test
+period, January 2025 -- September 2026, is scored once. The test data therefore never influence any choice.
+Every model is compared with a naive baseline: ``units this month = units last month'' for problem~A and
+``always small'' for problem~B.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[x=1.75cm, every node/.style={font=\footnotesize}]
+\foreach \y/\lab in {0/2020,1/2021,2/2022,3/2023,4/2024,5/2025,6/2026} \node at (\y+0.5,0.85) {\lab};
+\fill[brand!25] (0,0) rectangle (4,0.5);   \node at (2,0.25) {\textbf{fit} -- learn while tuning};
+\fill[accent!35] (4,0) rectangle (5,0.5);  \node at (4.5,0.25) {\textbf{val}};
+\fill[brand!45] (0,-0.75) rectangle (5,-0.25); \node at (2.5,-0.5) {\textbf{train} -- learn again with the chosen setting};
+\fill[green!30!gray!40] (5,-0.75) rectangle (6.75,-0.25); \node at (5.875,-0.5) {\textbf{test}};
+\draw[thick,-{Stealth}] (0,-1.05) -- (7,-1.05) node[right] {time};
+\node[align=left, anchor=west, font=\scriptsize] at (0,-1.45) {1. choose settings on 2024 \quad 2. refit on 2020--2024 \quad 3. score once on 2025--2026};
+\end{tikzpicture}
+\caption{Time-ordered protocol used by every supervised experiment in this chapter}\label{fig:split}
+\end{figure}
+
+\subsection{Implementation}
+Each algorithm has its own script in the folder \path{algorithms/} (\cref{tab:lessons}). Every script is divided
+into small numbered steps, so it can be run as a whole or cell by cell. All steps print their results and save
+their charts to \path{algorithms/outputs/}. The final test scores and the key numbers quoted below are written
+to JSON files, and \path{algorithms/export_to_report.py} turns them into the tables and \LaTeX{} macros of this
+chapter. As in the rest of the report, no number here is typed by hand.
+
+\begin{table}[htbp]\centering\small
+\caption{Algorithm experiments and what each one demonstrates}\label{tab:lessons}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+\textbf{Script} & \textbf{Problem} & \textbf{Concepts demonstrated} \\ \midrule
+\texttt{01\_linear\_regression} & A & learned equation, standardised coefficients, residual analysis \\
+\texttt{02\_logistic\_regression} & B & sigmoid, odds ratios, class weights, threshold choice, ROC curve \\
+\texttt{03\_decision\_tree} & B (+A) & readable rules, Gini impurity, depth and overfitting \\
+\texttt{04\_random\_forest} & A (+B) & bagging, number of trees, out-of-bag score, permutation importance \\
+\texttt{05\_gradient\_boosting} & A (+B) & boosting by hand, learning rate versus number of trees \\
+\texttt{06\_xgboost} & B (+A) & regularisation, early stopping, rare-class weighting, gain importance \\
+\texttt{07\_svm} & B (+A) & scaling, linear and RBF kernels, the $C$ and $\gamma$ settings, SVR \\
+\texttt{08\_knn} & B (+A) & distance, scaling, choice of $k$, inspecting neighbours \\
+\texttt{09\_kmeans\_clustering} & C & Lloyd's algorithm by hand, elbow and silhouette, naming clusters \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+% ============================================================================
+\section{Linear regression}
+\paragraph{Principle.} Linear regression models the target as a weighted sum of the inputs,
+$\hat y = \beta_0 + \beta_1 x_1 + \dots + \beta_p x_p$. Ordinary least squares chooses the weights that minimise
+the sum of squared errors, which has the closed-form solution
+\[
+  \hat{\boldsymbol\beta} = (\mathbf X^\top \mathbf X)^{-1}\mathbf X^\top \mathbf y .
+\]
+Each coefficient is the expected change in the target for a one-unit change in its input, holding the others
+constant \citep{montgomery2021, james2021}.
+
+\paragraph{Experiment.} With last month's units as the only input, the learned line is
+$\widehat{\text{units}} = \LinBzero + \LinBone \times \text{units}_{t-1}$ (\cref{fig:alglin}, left). The slope
+below one is \emph{regression to the mean}: an unusually strong month tends to be followed by a weaker one, and
+vice versa. This single-input model already reduces the test MAE from \AlgRegBaseMAE (baseline) to \LinOneMAE
+units. With all nine standardised inputs, the test MAE falls to \AlgLinMAE units ($R^2 = \AlgLinRtwo$). The
+largest standardised coefficient belongs to \texttt{\LinTopFeature} (\LinTopCoef units per standard
+deviation): the recent level of demand is the strongest predictor. The residual plot (\cref{fig:alglin}, right)
+is centred on zero with no strong pattern, so the linear form is adequate for this problem.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.43\linewidth]{algo/01_simple_line}\hfill
+\includegraphics[width=.55\linewidth]{algo/01_residuals}
+\caption{Linear regression: the learned line with one input (left); predicted versus actual units and the error distribution on the test period (right)}\label{fig:alglin}
+\end{figure}
+
+\paragraph{Assessment.} Linear regression is fast, fully explainable and, with good lag features, nearly as
+accurate as the ensembles. Its weaknesses are that it cannot represent interactions or thresholds unless they
+are added as features, and that correlated inputs (here the three history features) make individual
+coefficients unstable even when predictions are good.
+
+% ============================================================================
+\section{Logistic regression}
+\paragraph{Principle.} Logistic regression passes the linear score $z = \beta_0 + \boldsymbol\beta^\top\mathbf x$
+through the sigmoid function to obtain a probability,
+\[
+  P(y=1 \mid \mathbf x) = \sigma(z) = \frac{1}{1+e^{-z}}, \qquad
+  \log\frac{P}{1-P} = \beta_0 + \boldsymbol\beta^\top\mathbf x ,
+\]
+and the weights maximise the log-likelihood of the observed classes \citep{hosmer2013}. The exponentiated
+coefficient $e^{\beta_j}$ is an \emph{odds ratio}: the factor by which the odds of a large order are multiplied
+when $x_j$ increases by one unit.
+
+\paragraph{Experiment.} With only the smoothed channel~$\times$~region order size as input, the coefficient is
+\LogBone. The predicted probability of a large order rises from \LogPfive in a channel and region whose orders
+average 5 units, to \LogPten at 10 units and \LogPfifteen at 15 units. With all 18 standardised inputs and
+\emph{balanced class weights} (errors on the rare class count more), the same feature dominates with an odds
+ratio of \LogTopOR per standard deviation. All other odds ratios are close to one. The decision threshold was
+chosen by maximising F1 on 2024, which selected \LogThreshold. On the test period the model reaches ROC-AUC
+\AlgLogAUC, recall \AlgLogRecall and precision \AlgLogPrec. The baseline that always answers ``small'' is
+\AlgClsBaseAcc\% accurate but finds no large order at all. This shows why accuracy alone is misleading for
+imbalanced classes.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.36\linewidth]{algo/02_sigmoid}\hfill
+\includegraphics[width=.62\linewidth]{algo/02_confusion_roc}
+\caption{Logistic regression: the sigmoid link (left); confusion matrix and ROC curve on the test period (right)}\label{fig:alglog}
+\end{figure}
+
+\paragraph{Assessment.} Logistic regression gives calibrated probabilities and explanations that managers can
+read directly (``this channel doubles the odds''). In this study it is also the most accurate classifier, which
+is strong evidence that the signal is essentially one main effect.
+
+% ============================================================================
+\section{Decision tree}
+\paragraph{Principle.} A decision tree splits the data recursively with yes/no questions on single features. At
+each node, CART chooses the question that most reduces impurity \citep{breiman1984}. For classification the
+Gini impurity of a node with class shares $p_k$ is $G = 1 - \sum_k p_k^2$, which is zero for a pure node. For
+regression the variance (squared error) is used, and each leaf predicts the mean of its training rows.
+
+\paragraph{Experiment.} A tree of depth two already reads like a business rule: \emph{if the channel and region
+usually place orders above about six units, expect a large order}. The depth was tuned on 2024
+(\cref{fig:algdt}, left). As the tree deepens, its ROC-AUC on the data it learned from keeps rising (to
+\DTFitAUCDeep at depth 15), while the score on unseen 2024 orders peaks early and then falls (\DTValAUCDeep at
+depth 15). This is the textbook picture of \emph{overfitting}. The best depth was \DTBestDepth, with a test
+ROC-AUC of \AlgDTAUC. In the final tree \texttt{channel\_region\_avg\_qty} accounts for \DTTopShare of the
+total impurity reduction. As a regressor for problem~A, a depth-5 tree reaches an MAE of \AlgDTMAE units: better
+than the baseline, but the weakest of the supervised regressors.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.42\linewidth]{algo/03_depth_tuning}\hfill
+\includegraphics[width=.56\linewidth]{algo/03_tree}
+\caption{Decision tree: tuning the depth on 2024 (left); the top levels of the final tree (right)}\label{fig:algdt}
+\end{figure}
+
+\paragraph{Assessment.} Trees are the most explainable non-linear model and need no scaling, but a single tree has
+high variance: small changes in the data can produce a different tree. The two ensemble methods that follow
+are designed to remove this weakness.
+
+% ============================================================================
+\section{Random forest}
+\paragraph{Principle.} A random forest averages $B$ trees, each grown on a bootstrap sample of the rows and
+choosing every split from a random subset of the features \citep{breiman2001}. If single trees have variance
+$\sigma^2$ and pairwise correlation $\rho$, the variance of their average is
+\[
+  \operatorname{Var}\Bigl(\tfrac{1}{B}\textstyle\sum_{b=1}^{B} T_b\Bigr) = \rho\,\sigma^2 + \frac{1-\rho}{B}\,\sigma^2 ,
+\]
+so adding trees removes the second term, and random feature selection reduces $\rho$ \citep{hastie2009}.
+
+\paragraph{Experiment.} A single full-depth tree has a validation MAE of \RFOneTreeMAE units on 2024. A forest
+of one tree is similar (\RFValMAEone), but the error falls quickly as trees are added and levels off at about
+100 trees (\RFValMAEhundred; \cref{fig:algrf}). More trees never cause overfitting; they only cost time. Each
+tree leaves out about a third of the rows, and scoring each row with the trees that did not see it gives a free
+\emph{out-of-bag} estimate ($R^2 = \RFOOB$). On the test period the 300-tree forest reaches an MAE of
+\AlgRFMAE units ($R^2 = \AlgRFRtwo$). Permutation importance shows that shuffling
+\texttt{\RFTopFeature} increases the error by \RFTopPerm units, more than any other input. The individual trees
+also give a range for each forecast, which is useful for safety stock. As a classifier, the forest reaches
+ROC-AUC \AlgRFAUC.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.6\linewidth]{algo/04_n_trees}
+\caption{Random forest: validation error (2024) against the number of trees}\label{fig:algrf}
+\end{figure}
+
+% ============================================================================
+\section{Gradient boosting}
+\paragraph{Principle.} Boosting builds trees \emph{in sequence}. Starting from a constant $F_0$, each new tree
+$h_m$ is fitted to the negative gradient of the loss, which for squared error is simply the current residual,
+and a fraction $\nu$ (the learning rate) of it is added \citep{friedman2001}:
+\[
+  F_m(\mathbf x) = F_{m-1}(\mathbf x) + \nu\, h_m(\mathbf x), \qquad
+  h_m \approx \arg\min_h \textstyle\sum_i \bigl(y_i - F_{m-1}(\mathbf x_i) - h(\mathbf x_i)\bigr)^2 .
+\]
+
+\paragraph{Experiment.} The experiment first implements boosting by hand in six lines of code. Starting from the
+mean, the training MAE falls from \GBManualStart to \GBManualFive units after only five depth-3 trees. The
+library version was then tuned over the learning rate and the number of trees using staged predictions on 2024
+(\cref{fig:alggb}). A high learning rate reaches its best error quickly and then overfits. A low rate needs many
+more trees but degrades more slowly. The chosen setting was a learning rate of \GBRate with \GBTrees trees. The
+test MAE is \AlgGBMAE units ($R^2 = \AlgGBRtwo$), and the most important input is
+\texttt{\GBTopFeature}. Because the classifier version has no class-weight option, its decision threshold was
+lowered to the training share of large orders. It then reaches ROC-AUC \AlgGBAUC.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.65\linewidth]{algo/05_learning_rate}
+\caption{Gradient boosting: validation error (2024) against the number of trees for three learning rates}\label{fig:alggb}
+\end{figure}
+
+% ============================================================================
+\section{XGBoost}
+\paragraph{Principle.} XGBoost is a regularised, second-order implementation of gradient boosting
+\citep{chen2016}. At step $m$ it minimises
+\[
+  \mathcal L^{(m)} = \sum_i \ell\bigl(y_i, \hat y_i^{(m-1)} + f_m(\mathbf x_i)\bigr) + \Omega(f_m), \qquad
+  \Omega(f) = \gamma T + \tfrac12 \lambda \lVert \mathbf w\rVert^2 ,
+\]
+where $T$ is the number of leaves and $\mathbf w$ the leaf values. The penalty $\Omega$ discourages complex trees.
+Row and column sub-sampling add randomness, as in a random forest, and \emph{early stopping} ends training as
+soon as the validation score stops improving.
+
+\paragraph{Experiment.} For problem B, the weight of the rare class was set to the ratio of small to large orders
+(\XGBPosWeight). With early stopping monitored on 2024, the validation ROC-AUC peaked after only \XGBBestN trees
+(\XGBValAUC; \cref{fig:algxgb}). The training curve kept rising after that point, the familiar sign of
+memorisation. Refitted with that many trees, XGBoost reaches a test ROC-AUC of \AlgXGBAUC and an F1 of
+\AlgXGBFone. Gain importance attributes \XGBTopGain of the model's gain to the channel~$\times$~region feature.
+For problem~A early stopping selected \XGBRegTrees trees, and the regressor reaches a test MAE of \AlgXGBMAE
+units ($R^2 = \AlgXGBRtwo$).
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.65\linewidth]{algo/06_early_stopping}
+\caption{XGBoost: ROC-AUC on the training and validation years as trees are added, with the early-stopping point}\label{fig:algxgb}
+\end{figure}
+
+% ============================================================================
+\section{Support vector machine}
+\paragraph{Principle.} A support vector machine finds the boundary with the widest margin between the classes.
+The soft-margin formulation allows some violations, controlled by $C$ \citep{cortes1995}:
+\[
+  \min_{\mathbf w, b, \boldsymbol\xi}\ \tfrac12 \lVert\mathbf w\rVert^2 + C\sum_i \xi_i
+  \quad\text{s.t.}\quad y_i(\mathbf w^\top\phi(\mathbf x_i) + b) \geq 1 - \xi_i,\ \ \xi_i \geq 0 .
+\]
+The kernel trick replaces inner products by a kernel such as the radial basis function
+$K(\mathbf x, \mathbf x') = \exp(-\gamma\lVert\mathbf x - \mathbf x'\rVert^2)$, which lets the boundary curve
+\citep{scholkopf2002}. Only the training points on or inside the margin, the \emph{support vectors}, define the
+solution. Support vector regression (SVR) applies the same idea with an $\varepsilon$-insensitive tube around the
+regression function.
+
+\paragraph{Experiment.} Because the SVM works with distances, feature scaling is essential. Without it, the
+validation ROC-AUC was \SVMRawAUC, barely better than guessing. With standardisation it was \SVMScaledAUC. A
+linear kernel (\SVMLinAUC) was slightly better than the default RBF kernel (\SVMRbfAUC). A small grid then
+selected $C = \SVMBestC$ and $\gamma = \SVMBestGamma$ (validation ROC-AUC \SVMBestValAUC;
+\cref{fig:algsvm}). The small $C$ means a wide, smooth margin works best. The final model, trained on
+\SVMTrainRows orders because training time grows roughly with the square of the number of rows, reaches a
+test ROC-AUC of \AlgSVMAUC. It keeps \SVMNSupport of its training rows as support vectors, a sign that the two
+classes overlap heavily. For problem~A the \SVRBest is better and reaches an MAE of \AlgSVMMAE units
+($R^2 = \AlgSVMRtwo$).
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.6\linewidth]{algo/07_svm_tuning}
+\caption{Support vector machine: validation ROC-AUC (2024) for combinations of $C$ and $\gamma$}\label{fig:algsvm}
+\end{figure}
+
+% ============================================================================
+\section{\texorpdfstring{$k$}{k}-nearest neighbours}
+\paragraph{Principle.} KNN stores the training data and predicts for a new case from its $k$ closest neighbours
+$N_k(\mathbf x)$ in feature space: by majority vote for classification and by the (optionally distance-weighted)
+mean for regression \citep{cover1967}:
+\[
+  \hat y(\mathbf x) = \frac{1}{k}\sum_{i \in N_k(\mathbf x)} y_i .
+\]
+There is no training step in the usual sense, but every prediction requires distances to all stored rows.
+
+\paragraph{Experiment.} Scaling matters as much as for the SVM. Without it, the validation ROC-AUC was \KNNRawAUC,
+because the distance was almost entirely determined by \texttt{units\_lag\_1}, whose values are in the
+thousands. With standardisation it rose to \KNNScaledAUC. The choice of $k$ shows the bias--variance trade-off
+directly (\cref{fig:algknn}). With $k=1$ the model is perfect on its own data (ROC-AUC \KNNOneFitAUC) but weak on
+2024 (\KNNOneValAUC). The validation score kept improving up to the largest value tried, $k=\KNNBestK$: when the
+outcome of a single order is mostly noise, averaging over many neighbours helps. The test ROC-AUC is
+\AlgKNNAUC. Inspecting the neighbours of a single order shows the explanation KNN offers: ``orders like this one
+were large in \emph{x} out of $k$ cases''. For problem~A, $k=\KNNRegK$ distance-weighted neighbours give an MAE
+of \AlgKNNMAE units.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.6\linewidth]{algo/08_choose_k}
+\caption{$k$-nearest neighbours: ROC-AUC on the learned data and on 2024 for different $k$}\label{fig:algknn}
+\end{figure}
+
+% ============================================================================
+\section{\texorpdfstring{$K$}{K}-means clustering}
+\paragraph{Principle.} $K$-means partitions $n$ observations into $K$ clusters with centres $\boldsymbol\mu_j$ by
+minimising the within-cluster sum of squares \citep{macqueen1967}:
+\[
+  \min_{C_1,\dots,C_K} \sum_{j=1}^{K}\ \sum_{\mathbf x_i \in C_j} \lVert \mathbf x_i - \boldsymbol\mu_j\rVert^2 .
+\]
+Lloyd's algorithm alternates two steps until nothing changes: assign each point to its nearest centre, then move
+each centre to the mean of its points. Because the result depends on the starting centres, the algorithm is
+restarted several times and the best solution is kept.
+
+\paragraph{Experiment.} The experiment first runs Lloyd's algorithm by hand for $K=3$. It converges in \KMIters
+iterations, and the within-cluster sum of squares falls at every step. $K$ was then chosen with the elbow plot
+and the silhouette coefficient \citep{rousseeuw1987, kaufman1990}. The silhouette selected $K=\KMBestK$ with a
+value of \KMSil, which indicates clear structure. The small cluster contains the \KMSmall bread and breakfast
+products, which sell fewer units per month, in larger orders and with a higher share of large orders than the
+cakes. For $K \geq 3$ the silhouette drops to about \KMSilFour, so the cakes do not form well-separated
+sub-groups on these six features. This complements \cref{ch:models}, where a different feature set (revenue,
+growth, seasonality and volatility) and a practical range of three to five segments produced a more detailed,
+strategy-oriented segmentation. The fitted model can place a new product into a cluster from its expected
+profile, so planners can treat it like similar existing products.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.55\linewidth]{algo/09_choose_k}\hfill
+\includegraphics[width=.43\linewidth]{algo/09_clusters}
+\caption{$K$-means: elbow and silhouette for $K = 2,\dots,8$ (left); products and cluster centres on the first two principal components (right)}\label{fig:algkm}
+\end{figure}
+
+% ============================================================================
+\section{Comparative results}
+\Cref{tab:algoreg,tab:algocls} bring the supervised experiments together.
+
+\input{tables/algo_regression.tex}
+\input{tables/algo_classification.tex}
+
+For problem A every algorithm beats the baseline. The best, \AlgRegBest, reduces the MAE from \AlgRegBaseMAE to
+\AlgRegBestMAE units, an improvement of \AlgRegGain\%. The spread between the top models is small, however, and
+linear regression (\AlgLinMAE) is within a few units of the ensembles. Only the single decision tree
+(\AlgDTMAE) clearly lags behind. For problem B every algorithm lies in a narrow band of ROC-AUC, from
+\AlgClsWorstAUC (\AlgClsWorst) to \AlgClsBestAUC (\AlgClsBest). The algorithms differ mainly in where they place
+the trade-off between precision and recall, which is a business choice made through the threshold, not a
+difference in predictive power.
+
+These results agree with \cref{ch:models}, which used a richer feature set and a different tuning procedure. In
+both chapters, (i) all machine-learning models beat the naive baselines, (ii) the leading regressors are
+separated by only a few percent, so their exact ranking is not stable, (iii) linear models are competitive with
+complex ensembles once good lag features exist, and (iv) large-order prediction is capped at a ROC-AUC of about
+0.7 by the information in the data. Reaching the same conclusions with two independent implementations is a
+form of triangulation that increases confidence in the findings \citep{makridakis2018, kuhn2019}.
+
+\begin{table}[htbp]\centering\small
+\caption{Practical profile of the nine algorithms, based on the experiments}\label{tab:algoprofile}
+\begin{tabularx}{\linewidth}{@{}lcccc>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Algorithm} & \textbf{Type} & \textbf{Scaling} & \textbf{Explain.} & \textbf{Cost} & \textbf{Best use in this project} \\ \midrule
+Linear regression & R & yes\textsuperscript{a} & high & very low & transparent demand baseline \\
+Logistic regression & C & yes & high & very low & large-order probability, odds ratios \\
+Decision tree & R/C & no & high & low & business rules, explaining drivers \\
+Random forest & R/C & no & medium & medium & robust forecasts with ranges \\
+Gradient boosting & R/C & no & medium & medium & accurate forecasts (tuned) \\
+XGBoost & R/C & no & medium & low & accurate forecasts, early stopping \\
+SVM / SVR & R/C & yes & low & high & linear SVR for demand; small data \\
+KNN & R/C & yes & medium & high\textsuperscript{b} & case-based explanations \\
+$K$-means & U & yes & high & low & product and market segments \\ \bottomrule
+\end{tabularx}
+\par\smallskip\footnotesize R = regression, C = classification, U = unsupervised; Explain.\ = explainability.
+\textsuperscript{a}Not needed for the fit itself, but needed to compare coefficients.
+\textsuperscript{b}At prediction time, because every prediction searches all stored rows.
+\end{table}
+
+\section{Lessons for practitioners}
+\begin{enumerate}
+  \item \textbf{Start with a baseline and a simple model.} A naive rule and a linear model set the bar. Here they
+        were within a few percent of the best ensemble, at a fraction of the cost and with full explainability.
+  \item \textbf{Tune on validation data, never on the test.} Every setting (depth, number of trees, learning
+        rate, $C$, $\gamma$, $k$, threshold) was chosen on 2024. The test score is therefore an honest estimate.
+  \item \textbf{Scale for distance-based methods.} SVM and KNN dropped to near-random performance without
+        scaling. Tree methods do not need it.
+  \item \textbf{Watch the gap between training and validation.} Deep trees, $k=1$ neighbours and boosting without
+        early stopping all fit the training data almost perfectly and generalise worse.
+  \item \textbf{Choose metrics that match the business.} With imbalanced classes, accuracy rewards a useless
+        model. ROC-AUC, recall, precision and a deliberately chosen threshold are more meaningful.
+  \item \textbf{When all algorithms agree, the limit is the data.} Seven classifiers with the same ROC-AUC show
+        that better large-order prediction needs new information, such as customer history, not a different
+        algorithm \citep{kelleher2020, geron2022}.
+\end{enumerate}

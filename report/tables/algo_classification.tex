@@ -1,0 +1,17 @@
+\begin{table}[htbp]\centering\small
+\caption{Problem B, large order ($\geq 10$ units): test results 2025--2026 of the algorithm lessons (sorted by ROC-AUC; best in bold)}\label{tab:algocls}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+\textbf{Algorithm} & \textbf{accuracy} & \textbf{precision} & \textbf{recall} & \textbf{F1} & \textbf{ROC-AUC} \\ \midrule
+\textbf{Logistic Regression} & \textbf{0.592} & \textbf{0.328} & \textbf{0.765} & \textbf{0.459} & \textbf{0.718} \\
+XGBoost & 0.632 & 0.348 & 0.719 & 0.469 & 0.717 \\
+Decision Tree & 0.635 & 0.349 & 0.711 & 0.468 & 0.712 \\
+Random Forest & 0.632 & 0.345 & 0.696 & 0.461 & 0.712 \\
+SVM & 0.715 & 0.396 & 0.494 & 0.439 & 0.712 \\
+Gradient Boosting & 0.557 & 0.310 & 0.788 & 0.445 & 0.693 \\
+KNN & 0.673 & 0.359 & 0.569 & 0.440 & 0.690 \\
+\midrule
+\emph{Baseline: always small} & 0.774 & 0.000 & 0.000 & 0.000 & 0.500 \\
+\bottomrule
+\end{tabular}
+\end{table}

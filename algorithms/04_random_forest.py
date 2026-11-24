@@ -20,7 +20,7 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.tree import DecisionTreeRegressor
 
 from common import (MONTH_FEATS, ORDER_FEATS, SEED, classification_scores, load_monthly, load_orders,
-                    regression_scores, save_result, savefig, show, split_years)
+                    regression_scores, save_fact, save_result, savefig, show, split_years)
 
 s = split_years(load_monthly())
 train, test = s["train"], s["test"]
@@ -83,6 +83,9 @@ clf_results = {"Random Forest Classifier": classification_scores(
     so["test"].large_order, rfc.predict(so["test"][ORDER_FEATS]), rfc.predict_proba(so["test"][ORDER_FEATS])[:, 1])}
 show(clf_results, "Problem B - large order, test 2025-2026 (higher = better):")
 
-# %% Step 8. Save the final scores
+# %% Step 8. Save the final scores (and key numbers for the report)
+save_fact(rf_one_tree_val_mae=mean_absolute_error(s["val"].units, one_tree.predict(s["val"][MONTH_FEATS])),
+          rf_val_mae_1=val_mae[0], rf_val_mae_100=val_mae[sizes.index(100)], rf_oob_r2=rf.oob_score_,
+          rf_top_feature=imp.index[0], rf_top_perm=imp.iloc[0]["permutation"])
 save_result("Random Forest", "A_regression_monthly_units", results["Random Forest (300 trees)"])
 save_result("Random Forest", "B_classification_large_order", clf_results["Random Forest Classifier"])

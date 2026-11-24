@@ -46,6 +46,10 @@ dan_cake_project/
   outputs/ metrics/ tables/ models/          generated results
   report/  main.tex, chapters/, figures/, tables/, generated/
   docs/                    project website (GitHub Pages)
+  algorithms/              one lesson per algorithm (01-09), common.py,
+                           export_to_report.py, outputs/
+  tools/                   capture_screenshots.py (report screenshots)
+  01_...07_*.py            hands-on preprocessing and predictive-analytics scripts
   sql/  tests/  guides/
 \end{lstlisting}
 
@@ -59,20 +63,34 @@ python -m pytest tests            # automated tests
 streamlit run dashboard/app.py    # open http://localhost:8501
 \end{lstlisting}
 
-\section{Free deployment}
-\begin{enumerate}
-  \item Create a free GitHub account and a public repository; push the project (the raw CSV is excluded by
-        \texttt{.gitignore}; the small dashboard data are included).
-  \item \textbf{Dashboard:} sign in to Streamlit Community Cloud with GitHub, choose \emph{New app}, select the
-        repository, branch \texttt{main} and file \texttt{dashboard/app.py}, then deploy. The app receives an
-        address ending in \texttt{.streamlit.app}.
-  \item \textbf{Website:} in the repository settings, open \emph{Pages}, choose \emph{Deploy from a branch},
-        branch \texttt{main}, folder \texttt{/docs}. The site appears at \path{https://<user>.github.io/<repo>}.
-  \item Regenerate the website with the real links (run inside \texttt{src}), then commit and push:
+\section{Running the algorithm study}
+Each experiment of \cref{ch:algorithms} is a separate script. They can be run in order, or step by step in
+VS Code by clicking \emph{Run Cell} above each \texttt{\# \%\%} marker. The export script then refreshes the
+tables, numbers and figures of \cref{ch:algorithms}.
 \begin{lstlisting}[language=bash]
-python -m dancake.website --dashboard-url <app url> \
-                          --repo-url <repo url>
+python algorithms/01_linear_regression.py      # ... up to 09_kmeans_clustering.py
+python algorithms/export_to_report.py           # update report tables and numbers
+python tools/capture_screenshots.py             # refresh dashboard screenshots
+                                                # (dashboard running on port 8510)
 \end{lstlisting}
+
+\section{Free deployment (as carried out)}
+\begin{enumerate}
+  \item A public GitHub repository was created and the project pushed (\repo). The raw CSV and intermediate
+        data are excluded by \texttt{.gitignore}; the small dashboard data are included.
+  \item \textbf{Dashboard:} in Streamlit Community Cloud, signed in with GitHub, \emph{Create app} $\rightarrow$
+        \emph{Deploy a public app from GitHub}; repository \path{sumon-cse83/dan-cake-analytics}, branch
+        \texttt{main}, file \texttt{dashboard/app.py}, app address \texttt{dan-cake-analytics}. The app is live
+        at \dashurl.
+  \item \textbf{Website:} GitHub Pages was enabled for branch \texttt{main}, folder \texttt{/docs}. The site is
+        live at \siteurl.
+  \item The website was regenerated with the real links (run inside \texttt{src}), then committed and pushed:
+\begin{lstlisting}[language=bash]
+python -m dancake.website --dashboard-url https://dan-cake-analytics.streamlit.app \
+                          --repo-url https://github.com/sumon-cse83/dan-cake-analytics
+\end{lstlisting}
+  \item Every later \texttt{git push} to \texttt{main} redeploys both the dashboard and the website
+        automatically (\cref{fig:cicd}).
 \end{enumerate}
 
 \section{Re-using the framework for another project}

@@ -19,7 +19,7 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
 
-from common import ROOT, SEED, read_orders, save_result, savefig
+from common import ROOT, SEED, read_orders, save_fact, save_result, savefig
 
 train, _ = read_orders()          # clusters are learned from 2020-2024 only
 
@@ -121,6 +121,8 @@ print("\nNew product ideas and their cluster:\n" + idea.to_string())
 # Note: do NOT compare clusters of 2020-24 with profiles from 2025-26 directly - 2026 has no December yet and
 # large orders became more common, so every product's profile shifts. Re-cluster each full year instead.
 
-# %% Step 8. Save the result
+# %% Step 8. Save the result (and key numbers for the report)
+save_fact(km_manual_iters=it, km_best_k=best_k, km_sil=max(sil), km_sil_k4=sil[list(ks).index(4)],
+          km_small_cluster=int(prof.cluster.value_counts().min()), km_products=len(prof))
 save_result("K-Means", "C_clustering_products", {"k": best_k, "silhouette": round(float(max(sil)), 3),
                                                  "cluster_sizes": prof.cluster.value_counts().sort_index().tolist()})

@@ -33,8 +33,18 @@ docs/                      project website for GitHub Pages
 sql/kpi_queries.sql        example SQL on the warehouse (usable from Power BI)
 tests/                     automated tests (pytest)
 guides/                    step-by-step guides: deployment, LaTeX, reusing the framework
-01_…06_*.py                original hands-on preprocessing practice scripts
+algorithms/                one step-by-step lesson per ML algorithm (01-09) + export_to_report.py
+tools/capture_screenshots.py   refreshes the dashboard/website screenshots used in the report
+01_…07_*.py                hands-on preprocessing and predictive-analytics practice scripts
 ```
+
+## Live project
+
+| | |
+|---|---|
+| Interactive dashboard | https://dan-cake-analytics.streamlit.app |
+| Project website + PDF report | https://sumon-cse83.github.io/dan-cake-analytics/ |
+| Source code | https://github.com/sumon-cse83/dan-cake-analytics |
 
 ## Quick start (Windows PowerShell)
 
@@ -68,6 +78,16 @@ See [guides/DEPLOYMENT.md](guides/DEPLOYMENT.md): dashboard on **Streamlit Commu
 
 See [guides/LATEX.md](guides/LATEX.md). Upload the `report/` folder (plus `sql/`) to Overleaf, or compile locally
 with `pdflatex → bibtex → pdflatex ×2`. Edit your name, ID, supervisor and university at the top of `report/main.tex`.
+
+The final report (101 pages, 11 chapters + 4 appendices, 56 references including 34 textbooks) adds an
+algorithm-level study of all nine algorithms (chapter 7, from `algorithms/`), screenshots of every dashboard page
+and the live deployment (chapter 8). To refresh the generated parts after changing code or data:
+
+```powershell
+python algorithms\export_to_report.py        # chapter 7 tables, numbers and figures
+python tools\capture_screenshots.py          # chapter 8 screenshots (dashboard running on port 8510)
+cd report; ..\.tex\Library\bin\tectonic.exe -X compile main.tex
+```
 
 ## Reusing for a future project
 
