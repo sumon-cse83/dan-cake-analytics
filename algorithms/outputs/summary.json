@@ -1,0 +1,107 @@
+{
+  "A_regression_monthly_units": {
+    "Linear Regression": {
+      "MAE": 100.78,
+      "RMSE": 126.29,
+      "MAPE_%": 14.25,
+      "R2": 0.692
+    },
+    "Decision Tree": {
+      "MAE": 108.02,
+      "RMSE": 139.75,
+      "MAPE_%": 13.48,
+      "R2": 0.623
+    },
+    "Random Forest": {
+      "MAE": 97.64,
+      "RMSE": 125.39,
+      "MAPE_%": 12.46,
+      "R2": 0.696
+    },
+    "Gradient Boosting": {
+      "MAE": 102.57,
+      "RMSE": 132.07,
+      "MAPE_%": 13.89,
+      "R2": 0.663
+    },
+    "XGBoost": {
+      "MAE": 96.89,
+      "RMSE": 124.87,
+      "MAPE_%": 12.97,
+      "R2": 0.699
+    },
+    "KNN": {
+      "MAE": 102.62,
+      "RMSE": 132.06,
+      "MAPE_%": 13.93,
+      "R2": 0.663
+    },
+    "SVM": {
+      "MAE": 99.82,
+      "RMSE": 124.97,
+      "MAPE_%": 14.0,
+      "R2": 0.698
+    }
+  },
+  "B_classification_large_order": {
+    "Logistic Regression": {
+      "accuracy": 0.592,
+      "precision": 0.328,
+      "recall": 0.765,
+      "F1": 0.459,
+      "ROC_AUC": 0.718
+    },
+    "Decision Tree": {
+      "accuracy": 0.635,
+      "precision": 0.349,
+      "recall": 0.711,
+      "F1": 0.468,
+      "ROC_AUC": 0.712
+    },
+    "Random Forest": {
+      "accuracy": 0.632,
+      "precision": 0.345,
+      "recall": 0.696,
+      "F1": 0.461,
+      "ROC_AUC": 0.712
+    },
+    "Gradient Boosting": {
+      "accuracy": 0.557,
+      "precision": 0.31,
+      "recall": 0.788,
+      "F1": 0.445,
+      "ROC_AUC": 0.693
+    },
+    "XGBoost": {
+      "accuracy": 0.632,
+      "precision": 0.348,
+      "recall": 0.719,
+      "F1": 0.469,
+      "ROC_AUC": 0.717
+    },
+    "KNN": {
+      "accuracy": 0.673,
+      "precision": 0.359,
+      "recall": 0.569,
+      "F1": 0.44,
+      "ROC_AUC": 0.69
+    },
+    "SVM": {
+      "accuracy": 0.715,
+      "precision": 0.396,
+      "recall": 0.494,
+      "F1": 0.439,
+      "ROC_AUC": 0.712
+    }
+  },
+  "C_clustering_products": {
+    "K-Means": {
+      "k": 2,
+      "silhouette": 0.538,
+      "cluster_sizes": [
+        48,
+        4
+      ]
+    }
+  }
+}

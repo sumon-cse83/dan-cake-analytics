@@ -1,0 +1,22 @@
+\begin{table}[htbp]
+\centering
+\footnotesize
+\caption{বড় অর্ডার ক্লাসিফিকেশন ($\geq$10 ইউনিট): পরীক্ষাকালের কর্মদক্ষতা, 2025--2026}
+\label{tab:classification}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+\textbf{Model} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{ROC-AUC} & \textbf{PR-AUC} & \textbf{Threshold} & \textbf{Lift@10\%} & \textbf{Time (s)} \\
+\midrule
+Logistic Regression & 0.661 & 0.357 & 0.628 & 0.455 & 0.712 & 0.418 & 0.62 & 2.35 & 15 \\
+Support Vector Machine (linear) & 0.629 & 0.341 & 0.698 & 0.458 & 0.711 & 0.417 & 0.31 & 2.34 & 42 \\
+Gradient Boosting (hist) & 0.709 & 0.387 & 0.502 & 0.437 & 0.711 & 0.418 & 0.23 & 2.34 & 35 \\
+Random Forest & 0.628 & 0.341 & 0.701 & 0.459 & 0.710 & 0.418 & 0.51 & 2.33 & 252 \\
+XGBoost & 0.635 & 0.343 & 0.676 & 0.455 & 0.709 & 0.416 & 0.20 & 2.34 & 60 \\
+Decision Tree & 0.550 & 0.309 & 0.807 & 0.447 & 0.709 & 0.407 & 0.48 & 2.31 & 14 \\
+K-Nearest Neighbors & 0.634 & 0.333 & 0.624 & 0.434 & 0.684 & 0.396 & 0.20 & 2.28 & 73 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\par\smallskip\parbox{0.92\linewidth}{\footnotesize\emph{টীকা:} পরীক্ষা-বছরে বড় অর্ডারের হার: 22.5\%; যে ক্লাসিফায়ার সবসময় `বড় নয়' বলে তার accuracy হতো 77.5\%, তাই কেবল accuracy বিভ্রান্তিকর। Threshold 2024 validation-বছরে F1 সর্বোচ্চ করে। KNN 60,000-সারির প্রশিক্ষণ-নমুনা ব্যবহার করে। Lift@10\% = সর্বোচ্চ স্কোরের 10\% অর্ডারে বড় অর্ডারের হার ভাগ সামগ্রিক হার।}
+\end{table}

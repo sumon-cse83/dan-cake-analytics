@@ -1,0 +1,19 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{ডিসেম্বর 2024 থেকে recursive 21-মাসের পূর্বাভাস (প্রশিক্ষণের পরে কোনো প্রকৃত ডেটা ব্যবহৃত হয়নি)}
+\label{tab:recursive}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lrrrrr}
+\toprule
+\textbf{Model} & \textbf{MAE} & \textbf{RMSE} & \textbf{R$^2$} & \textbf{MAPE \%} & \textbf{WAPE \%} \\
+\midrule
+Random Forest & 91.0 & 117.0 & 0.736 & 11.85 & 11.18 \\
+Support Vector Regression & 92.3 & 117.2 & 0.735 & 12.65 & 11.34 \\
+Linear Regression & 94.1 & 121.4 & 0.715 & 11.73 & 11.56 \\
+XGBoost & 104.1 & 137.5 & 0.635 & 16.17 & 12.79 \\
+Seasonal naive (2024 pattern repeated) & 125.9 & 158.1 & 0.517 & 15.87 & 15.47 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}

@@ -1,0 +1,185 @@
+\chapter{পূর্বাভাসমূলক মডেলিং ও মূল্যায়ন}\label{ch:models}
+
+এই অধ্যায় পূর্বাভাসমূলক প্রশ্ন, \emph{সামনে কী ঘটতে পারে?}, এর উত্তর দেয়। এখানে পর্যায়ক্রমে চারটি বিশ্লেষণী সমস্যা আলোচিত: চাহিদা
+পূর্বাভাস, বড় অর্ডারের ক্লাসিফিকেশন, বিভাজন এবং অ্যানোমালি ডিটেকশন।
+
+\section{মাসিক চাহিদা পূর্বাভাস}
+\subsection{প্রস্তুতি}
+পূর্বাভাস প্যানেলে মাসিকভাবে পর্যবেক্ষিত \PanelSeries টি পণ্য রয়েছে। প্রশিক্ষণ-সারি \PanelTrain টি (2020--2024) এবং পরীক্ষা-সারি
+\PanelTest টি (জানুয়ারি 2025 -- সেপ্টেম্বর 2026)। প্রতিটি মডেল $\log(1+\text{units})$ পূর্বাভাস করে, যা পরে ইউনিটে রূপান্তরিত হয়।
+Log স্কেল চাহিদার গুণাত্মক প্রকৃতির সঙ্গে মানানসই এবং সবচেয়ে বড় পণ্যগুলোকে fit-এ আধিপত্য করতে দেয় না। সাতটি অ্যালগরিদম
+\cref{ch:method}-এ বর্ণিত expanding-window ভাঁজে randomised search দিয়ে টিউন করা হয়েছে; নির্বাচিত hyper-parameter
+\cref{app:hyper}-এর \cref{tab:hyper}-এ দেওয়া আছে।
+
+\subsection{এক-ধাপ-অগ্রিম ফলাফল}
+\Cref{tab:forecast} পরীক্ষাকালের কর্মদক্ষতা দেখায় যখন প্রতিটি মাস আগের মাস পর্যন্ত প্রকৃত ইতিহাস দিয়ে পূর্বাভাস করা হয়, অর্থাৎ মাসিক
+পরিকল্পনা-চক্রের বাস্তব পরিস্থিতি। প্রতিটি মেশিন লার্নিং মডেল দুটি naive বেঞ্চমার্ককেই স্পষ্টভাবে হারিয়েছে। সেরা মডেল \BestReg-এর
+RMSE \BestRegRMSE ইউনিট, WAPE \BestRegWAPE\% এবং $R^2=\BestRegRtwo$; অর্থাৎ seasonal-naive নিয়মের (\SNaiveRMSE) চেয়ে RMSE
+\GainVsSNaive\% কম এবং naive নিয়মের (\NaiveRMSE) চেয়ে \GainVsNaive\% কম।
+
+\input{tables_bn/forecast_models.tex}
+
+আরও তিনটি পর্যবেক্ষণ উল্লেখযোগ্য। প্রথমত, ভালো মডেলগুলোর পার্থক্য সামান্য: RMSE \BestRegRMSE থেকে \WorstRegRMSE ইউনিটের মধ্যে,
+এবং log-ফিচারে linear regression (\LinRMSE) tree ensemble-এর (random forest \RFRMSE, XGBoost \XGBRMSE) সঙ্গে প্রতিযোগিতামূলক।
+ভালো lag ও মৌসুমি ফিচার থাকলে সমস্যাটি মূলত log-linear হয়ে যায়, ফলে মডেলের জটিলতা সামান্যই যোগ করে; এটি
+\citet{makridakis2018}-এর সঙ্গে সামঞ্জস্যপূর্ণ। দ্বিতীয়ত, একক decision tree সবচেয়ে দুর্বল (\DTRMSE), যা এর উচ্চ ভেদাঙ্কের কারণে
+প্রত্যাশিত; একটি forest-এ অনেক tree-র গড় নিলে এই দুর্বলতার বেশিরভাগ দূর হয় \citep{breiman2001}। তৃতীয়ত, প্রশিক্ষণ-বছরের
+cross-validated স্কোর মডেলগুলোকে পরীক্ষা-স্কোরের মতোই ক্রমে সাজায়, তাই যাচাই-নকশাটি ভবিষ্যৎ কর্মদক্ষতার নির্ভরযোগ্য নির্দেশক।
+\Cref{fig:forecastcomp} মডেলগুলোর তুলনা করে এবং দেখায় যে ভিন্ন আকারের পণ্যেও \BestReg-এর পূর্বাভাস প্রকৃত মানের খুব কাছাকাছি।
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{ml_forecast_comparison}
+\caption{সব পূর্বাভাস মডেলের পরীক্ষা-RMSE (বামে; সেরা মডেল চিহ্নিত, বেসলাইন ধূসর) এবং সেরা মডেলের প্রকৃত বনাম পূর্বাভাসিত ইউনিট (ডানে)}\label{fig:forecastcomp}
+\end{figure}
+
+\subsection{Recursive বহু-ধাপ ফলাফল}
+একটি কঠিনতর পরীক্ষা হলো ডিসেম্বর 2024 থেকে প্রশিক্ষণের পরে কোনো প্রকৃত ডেটা \emph{না দেখে} সব 21টি পরীক্ষা-মাসের পূর্বাভাস দেওয়া,
+যেখানে প্রতিটি মাসের পূর্বাভাস পরের মাসের ইতিহাস হিসেবে ফিরে আসে; এটি বার্ষিক বাজেটের পরিস্থিতি। \Cref{tab:recursive} দেখায় যে সেরা
+মডেলগুলোর অবনতি সামান্য: \BestRec-এর WAPE \BestRecWAPE\% ($R^2=\BestRecRtwo$), যা 2024-এর প্যাটার্ন পুনরাবৃত্তির চেয়ে অনেক ভালো।
+Recursion-এ XGBoost-এর অবনতি সবচেয়ে বেশি: যখন মডেলের নিজের পূর্বাভাস ইনপুট হয় তখন ত্রুটি জমা হয়, এবং প্রশিক্ষণ ডেটায় ঘনিষ্ঠভাবে
+fit করা boosted tree এতে বেশি ক্ষতিগ্রস্ত হয়।
+
+\input{tables_bn/forecast_recursive.tex}
+
+\subsection{কোম্পানি-পর্যায়ের পূর্বাভাস ও মডেল মিলকরণ}
+পণ্যের পূর্বাভাস যোগ করে কোম্পানির মোট পাওয়া যায়, যা সরাসরি মোট সিরিজে fit করা পরিসংখ্যানিক মডেলের সঙ্গে তুলনা করা যায়
+(\cref{tab:company}, \cref{fig:companyfc})। এই সমষ্টিগত পর্যায়ে additive প্রবণতা ও multiplicative মৌসুমিতাসহ Holt--Winters মডেল
+সবচেয়ে নির্ভুল, MAPE মাত্র \HWMAPE\%। যোগ করা মেশিন লার্নিং পূর্বাভাসও নির্ভুল, তবে সামান্য কম। এটি সাহিত্যের সঙ্গে সামঞ্জস্যপূর্ণ:
+মসৃণ সমষ্টিগত সিরিজে পরিসংখ্যানিক মডেল সুবিধা পায়, আর পৃথক পণ্যের স্তরে মেশিন লার্নিংয়ের সমন্বিত-শিক্ষণ সুবিধা কাজে লাগে। তাই
+কাঠামোটি দুটিকে \emph{top-down reconciliation} দিয়ে একত্র করে \citep{athanasopoulos2009}: Holt--Winters কোম্পানির মোট ও তার
+পূর্বাভাস-ব্যবধান নির্ধারণ করে, আর মেশিন লার্নিং মডেল সেই মোটকে পণ্যগুলোর মধ্যে বণ্টন করে, যাতে পণ্য-পরিকল্পনা হুবহু কোম্পানি-পরিকল্পনার
+সমান হয়।
+
+\input{tables_bn/forecast_company.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{ml_company_forecast_test}
+\caption{কোম্পানির মাসিক ইউনিট: পরীক্ষাকালে প্রকৃত মান ও প্রতিযোগী পূর্বাভাস}\label{fig:companyfc}
+\end{figure}
+
+\subsection{পূর্বাভাসের চালিকাশক্তি কী?}
+\Cref{fig:importance} মডেলগুলো ব্যাখ্যা করে। \BestReg-এর permutation importance দেখায় যে সাম্প্রতিক ইতিহাস (lag ও rolling গড়)
+সবচেয়ে বেশি তথ্য বহন করে, তারপর মৌসুমি ফিচার। XGBoost-এর SHAP মানও একই চিত্র দেয় এবং ডিসেম্বর-সূচক ও 12-মাসের lag-কে তুলে ধরে,
+যা মৌসুমি শীর্ষ ধরে। মূল্য-ফিচারের প্রভাব কম, যা \cref{ch:eda}-এর প্রায়-শূন্য স্থিতিস্থাপকতার সঙ্গে মেলে; অর্থাৎ মডেল ও ব্যাখ্যামূলক বিশ্লেষণ
+একই গল্প বলে।
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{ml_feature_importance}
+\caption{সেরা পূর্বাভাস মডেলের permutation importance (বামে) এবং XGBoost-এর গড় পরম SHAP মান (ডানে)}\label{fig:importance}
+\end{figure}
+
+\subsection{বারো মাসের দৃষ্টিভঙ্গি}
+নির্বাচিত মডেলগুলো সেপ্টেম্বর 2026 পর্যন্ত সব ডেটায় পুনরায় প্রশিক্ষিত হয়ে অক্টোবর 2026 -- সেপ্টেম্বর 2027-এর পূর্বাভাস দিয়েছে
+(\cref{tab:future}, \cref{fig:future})। এই বারো মাসে নিট বিক্রয়ের পূর্বাভাস \FutSales মিলিয়ন টাকা, 80\% ব্যবধান \FutSalesLo থেকে
+\FutSalesHi মিলিয়ন, যা আগের বারো মাসের (\PrevSales মিলিয়ন টাকা) চেয়ে \FutGrowth\% বেশি। ইউনিটে পরিবর্তন প্রত্যাশিত \FutUnitsGrowth\%,
+এবং ডিসেম্বরের শীর্ষ আবার ফিরবে। পূর্বাভাসে \FutTopCategory সবচেয়ে বড় ক্যাটাগরি থাকছে। এই দৃষ্টিভঙ্গি সরাসরি উৎপাদন, ক্রয় ও বাজেট
+প্রক্রিয়ায় ব্যবহার করা যায়।
+
+\input{tables_bn/future_forecast.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{ml_future_forecast}
+\caption{অক্টোবর 2026 -- সেপ্টেম্বর 2027-এর নিট বিক্রয়ের দৃষ্টিভঙ্গি, 80\% পূর্বাভাস-ব্যবধানসহ}\label{fig:future}
+\end{figure}
+
+\section{বড় অর্ডারের ক্লাসিফিকেশন}
+ক্লাসিফায়ারটি অর্ডার এন্ট্রির সময় পাওয়া তথ্য থেকে অনুমান করে অর্ডারে অন্তত 10 ইউনিট থাকবে কি না। প্রশিক্ষণ-অর্ডারের \ClsPosTrain\% এবং
+পরীক্ষা-অর্ডারের \ClsPosTest\% ছিল বড়। মডেলগুলো \ClsTrain টি অর্ডারে (2020--2024) প্রশিক্ষিত এবং \ClsTest টি অর্ডারে (2025--2026)
+পরীক্ষিত। ফিচার: চ্যানেল, অঞ্চল, গ্রাহকের ধরন, ক্যাটাগরি, মূল্য, ডিসকাউন্ট, প্যাক সাইজ, পণ্যের বয়স ও ক্যালেন্ডার-চলক, এবং চ্যানেল
+$\times$ অঞ্চল ও পণ্যের smoothed target encoding।
+
+\input{tables_bn/classification_models.tex}
+
+\Cref{tab:classification} ও \cref{fig:classification} একটি স্পষ্ট ও শিক্ষণীয় ফলাফল দেখায়। সাতটি অ্যালগরিদমেরই ROC-AUC প্রায় সমান,
+\ClsAUCmin থেকে \ClsAUC, এবং \ClsBest সেরা। যে মডেল সবসময় ``বড় নয়'' বলে, সেটি \ClsMajority\% নির্ভুল হলেও অকেজো। বিপরীতে টিউন
+করা মডেলগুলো বেশিরভাগ বড় অর্ডার খুঁজে পায় (\ClsBest-এর recall প্রায় \ClsRecall) মাঝারি precision-এ, এবং স্কোর অনুযায়ী শীর্ষ 10\%
+অর্ডারে বড় অর্ডার গড়ের চেয়ে \ClsLift গুণ বেশি। সীমা নির্ধারণ করছে ডেটায় থাকা \emph{তথ্য}, অ্যালগরিদম নয়: XGBoost (\ClsXGBAUC)
+logistic regression-এর চেয়ে কিছুই বাড়ায় না, আর KNN (\ClsKNNAUC) সবচেয়ে দুর্বল, কারণ অনেক one-hot ফিচারে দূরত্ব অর্থহীন হয়ে পড়ে।
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{ml_classification}
+\caption{বড় অর্ডার ক্লাসিফিকেশনের ROC বক্ররেখা (বামে), সেরা মডেলের confusion matrix (মাঝে) এবং মেট্রিক তুলনা (ডানে)}\label{fig:classification}
+\end{figure}
+
+XGBoost-এর gain importance (\cref{fig:clsimp}) কারণটি চিহ্নিত করে: মডেলের gain-এর প্রায় \ClsChannelImp\% আসে বিক্রয় চ্যানেল থেকে
+এবং প্রায় \ClsRegionImp\% অঞ্চল থেকে, আর পণ্য, মূল্য, ডিসকাউন্ট ও ক্যালেন্ডারের অবদান অতি সামান্য। পরীক্ষা-বছরগুলোতে ডিস্ট্রিবিউটর
+অর্ডারের \LargeDist\% ছিল বড়, অথচ E-commerce অর্ডারের মাত্র \LargeEcom\%। চ্যানেল ও অঞ্চলের ভেতরে অর্ডারের আকার প্রায় এলোমেলো।
+তাই সিদ্ধান্ত গ্রহণে উপযোগী ফল হলো লজিস্টিক পরিকল্পনার জন্য \emph{চ্যানেল-ও-অঞ্চল-স্তরের} বড় অর্ডারের প্রত্যাশা, অর্ডার-বাই-অর্ডার
+সুনির্দিষ্ট পূর্বাভাস নয়।
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.65\linewidth]{ml_classification_importance}
+\caption{বড় অর্ডারের চালিকাশক্তি: মূল চলক অনুযায়ী একত্রিত XGBoost gain}\label{fig:clsimp}
+\end{figure}
+
+\section{বিভাজন}
+\subsection{পণ্য পোর্টফোলিও}
+প্রতিটি পণ্যকে বর্ণনা করা হয়েছে এর log আয়, log গড় মূল্য, 2023 থেকে 2025-এর ইউনিট প্রবৃদ্ধি, ডিসেম্বর মৌসুমি সূচক এবং মাস-থেকে-মাসের
+অস্থিরতা দিয়ে। অর্ডারের আকার ও চ্যানেল-মিশ্রণ বাদ দেওয়া হয়েছে, কারণ পণ্যভেদে এগুলো প্রায় একই (\cref{ch:eda}) এবং কেবল noise যোগ
+করত। ফিচারগুলো standardise করে $k=2,\dots,8$-এর জন্য $K$-Means, agglomerative (Ward) ও Gaussian-mixture ক্লাস্টারিং তুলনা করা হয়েছে
+(\cref{fig:clustering}, \cref{tab:clustercompare})। তিন থেকে পাঁচটি বিভাগের ব্যবহারিক সীমার মধ্যে $k=\ProdK$-এ $K$-Means সেরা silhouette
+(\ProdSil) ও Davies--Bouldin সূচক \ProdDB দিয়েছে। ফলস্বরূপ বিভাগগুলো \cref{tab:productclusters}-এ সংক্ষেপিত এবং তাদের গড় থেকে
+স্বয়ংক্রিয়ভাবে নামকরণ করা।
+
+\input{tables_bn/product_clusters.tex}
+
+\subsection{বাজার-বিভাগ}
+অঞ্চল, চ্যানেল ও গ্রাহকের ধরনের 220টি সমন্বয়কে তাদের আয়, গড় অর্ডার-মূল্য, অর্ডারপ্রতি ইউনিট, মূল্য, ডিসকাউন্ট, প্রবৃদ্ধি ও গিফট-প্যাকের
+অংশ দিয়ে ক্লাস্টার করা হয়েছে। $K$-Means $k=\MktK$টি বিভাগ বেছে নিয়েছে (silhouette \MktSil), যা স্পষ্টভাবে ভাগ হয়: \emph{core retail
+trade} (বড় শহরে General ও Modern Trade), \emph{bulk distribution}, ছোট-অঙ্কের \emph{online ও আঞ্চলিক} কোষ, এবং একদল
+\emph{উদীয়মান উচ্চ-প্রবৃদ্ধির} কোষ (\cref{tab:marketclusters})।
+
+\input{tables_bn/market_clusters.tex}
+\input{tables_bn/cluster_comparison.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{ml_clustering}
+\caption{ক্লাস্টারের সংখ্যা অনুযায়ী silhouette স্কোর (বামে); প্রথম দুটি principal component-এ প্রক্ষিপ্ত পণ্য (মাঝে) ও বাজার-কোষ (ডানে)}\label{fig:clustering}
+\end{figure}
+
+Silhouette মান (\ProdSil ও \MktSil) দুর্বল থেকে মাঝারি কাঠামো নির্দেশ করে \citep{rousseeuw1987}। তাই বিভাগগুলো কৌশলের জন্য উপযোগী
+সারসংক্ষেপ, স্পষ্টভাবে পৃথক প্রাকৃতিক দল নয়। $K$-Means ও Ward ক্লাস্টারিং প্রায় একমত ছিল, আর এই ছোট নমুনায় Gaussian mixture
+সবচেয়ে দুর্বল। পাঠক যাতে বিভাজনের দৃঢ়তা বিচার করতে পারেন, সে জন্য এই ক্রম উল্লেখ করা হলো।
+
+\section{অ্যানোমালি ডিটেকশন}
+\subsection{দৈনিক পর্যবেক্ষণ}
+প্রতিটি দিনের প্রত্যাশিত মান হিসাব করা হয়েছে একটি 31-দিনের কেন্দ্রীভূত rolling median-কে বছরের মাস অনুযায়ী মৌসুমি গুণক দিয়ে গুণ করে।
+বিচ্যুতিগুলো log স্কেলে robust $z$-score $z = 0.6745\,(r-\tilde r)/\text{MAD}$ দিয়ে এবং আলাদাভাবে চারটি দৈনিক ফিচারের উপর একটি
+Isolation Forest দিয়ে স্কোর করা হয়েছে। দুটি পদ্ধতি মিলে 2,465টি ব্যবসায়িক দিনের মধ্যে \AnomDays টি চিহ্নিত করেছে: robust $z$-score
+দিয়ে \AnomDaysZ টি ও Isolation Forest দিয়ে \AnomDaysIF টি (\cref{fig:anomdaily}, \cref{tab:dailyanom})। বেশিরভাগ চিহ্নিত দিন অস্বাভাবিক
+দুর্বল ব্যবসায়িক দিন; বাস্তব প্রয়োগে প্রতিটি দিন সরকারি ছুটি, ধর্মঘট বা সিস্টেম-বিভ্রাটের মতো জানা কারণের সঙ্গে মিলিয়ে দেখা হবে।
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{anomaly_daily}
+\caption{দৈনিক নিট বিক্রয়, প্রত্যাশিত স্তর ও শনাক্তকৃত অস্বাভাবিকতা}\label{fig:anomdaily}
+\end{figure}
+\input{tables_bn/daily_anomalies.tex}
+
+\subsection{লেনদেন যাচাই}
+লেবেলযুক্ত ত্রুটি না থাকায় প্রকৃত ডেটায় ডিটেক্টরের সক্ষমতা মাপা যায় না। তাই প্রিপ্রসেসিং স্ক্রিপ্টের পদ্ধতি অনুসরণ করে 500,000 অর্ডারের
+একটি অনুলিপিতে চার ধরনের (প্রতিটি 250টি) মোট 1,000টি বাস্তবসম্মত ত্রুটি রোপণ করা হয়েছে (\cref{tab:anomaly})। পরিমাণের উপর প্রতি-পণ্য
+IQR নিয়ম রোপিত ত্রুটির মাত্র \AnomIQRRecall\% ধরেছে, কারণ চার ধরনের তিনটিতে পরিমাণ জড়িত নয়। মূল্য ও ডিসকাউন্টের উপর সরল ব্যবসায়িক
+নিয়ম নিখুঁত precision-এ \AnomRuleRecall\% ধরেছে, কিন্তু পরিমাণের সব ত্রুটি বাদ পড়েছে। Isolation Forest চার ধরনেই মিলিয়ে \AnomIFRecall\%
+ধরেছে: মূল্য ও ডিসকাউন্টের ত্রুটি সম্পূর্ণভাবে, এবং বেশিরভাগ স্ফীত পরিমাণও। শিক্ষা হলো নিয়ম ও মেশিন লার্নিং পরস্পরের পরিপূরক: জানা
+ব্যর্থতার ক্ষেত্রে নিয়ম নিখুঁত, আর অজানা ক্ষেত্রে Isolation Forest বিস্তৃত সুরক্ষা দেয়।
+
+\input{tables_bn/anomaly_detection.tex}
+
+\section{মডেল মূল্যায়নের সারসংক্ষেপ}
+\begin{table}[htbp]\centering\small
+\caption{প্রতিটি বিশ্লেষণী সমস্যার জন্য নির্বাচিত মডেলের সারসংক্ষেপ}\label{tab:modelsummary}
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+\textbf{সমস্যা} & \textbf{নির্বাচিত পদ্ধতি} & \textbf{প্রধান পরীক্ষা-ফল} \\ \midrule
+পণ্যের চাহিদা (এক-ধাপ) & \BestReg & WAPE \BestRegWAPE\%, $R^2$ \BestRegRtwo \\
+পণ্যের চাহিদা (বহু-ধাপ) & \BestRec, recursive & WAPE \BestRecWAPE\% \\
+কোম্পানির মোট & Holt--Winters + top-down reconciliation & MAPE \HWMAPE\% \\
+বড় অর্ডার & \ClsBest & ROC-AUC \ClsAUC, lift \ClsLift \\
+পণ্য-বিভাগ & $K$-Means, $k=\ProdK$ & silhouette \ProdSil \\
+বাজার-বিভাগ & $K$-Means, $k=\MktK$ & silhouette \MktSil \\
+লেনদেনের অস্বাভাবিকতা & নিয়ম অথবা Isolation Forest & recall \AnomComboRecall\% \\ \bottomrule
+\end{tabularx}
+\end{table}
+প্রস্তাবনার নির্দেশ অনুযায়ী মডেল বাছাই করা হয়েছে উপযুক্ত মেট্রিক \emph{এবং} ব্যবসায়িক প্রাসঙ্গিকতা দিয়ে, কেবল নির্ভুলতা দিয়ে নয়। যেখানে
+সরল মডেল জটিল মডেলের সমান কাজ করেছে (যেমন ক্লাসিফিকেশনে logistic regression বনাম XGBoost), সেখানে সরল ও বেশি ব্যাখ্যাযোগ্য মডেলটি
+অগ্রাধিকার পেয়েছে।

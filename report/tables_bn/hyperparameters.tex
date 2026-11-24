@@ -1,0 +1,21 @@
+\begin{table}[htbp]
+\centering
+\footnotesize
+\caption{Expanding-window যাচাইসহ randomised search-এ নির্বাচিত hyper-parameter (চাহিদা পূর্বাভাস)}
+\label{tab:hyper}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lp{10cm}}
+\toprule
+\textbf{Model} & \textbf{Selected hyper-parameters} \\
+\midrule
+Linear Regression & none (closed form) \\
+Decision Tree & max\_depth=10, min\_samples\_leaf=40 \\
+Random Forest & max\_depth=None, max\_features=0.33, min\_samples\_leaf=2, n\_estimators=500 \\
+Gradient Boosting & learning\_rate=0.05, max\_depth=2, n\_estimators=200, subsample=1.0 \\
+XGBoost & colsample\_bytree=0.6, learning\_rate=0.02, max\_depth=3, min\_child\_weight=10, n\_estimators=600, reg\_lambda=1, subsample=0.9 \\
+K-Nearest Neighbors & n\_neighbors=20, weights=distance \\
+Support Vector Regression & C=0.3, epsilon=0.05, gamma=0.01 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}

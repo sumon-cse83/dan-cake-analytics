@@ -1,0 +1,19 @@
+\begin{table}[htbp]
+\centering
+\footnotesize
+\caption{500,000 অর্ডারে রোপিত 1,000টি লেনদেন-ত্রুটির শনাক্তকরণ}
+\label{tab:anomaly}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lrrrrrrr}
+\toprule
+\textbf{Method} & \textbf{Flagged} & \textbf{Precision} & \textbf{Recall} & \textbf{Price x10} & \textbf{Qty x20} & \textbf{Disc. 30-45\%} & \textbf{Price 10\%} \\
+\midrule
+IQR on log quantity (per product) & 1,500 & 0.112 & 0.168 & 0.00 & 0.66 & 0.00 & 0.01 \\
+Business rules (price, discount) & 750 & 1.000 & 0.750 & 1.00 & 0.00 & 1.00 & 1.00 \\
+Isolation Forest (4 features) & 2,500 & 0.364 & 0.909 & 1.00 & 0.64 & 1.00 & 1.00 \\
+Rules OR Isolation Forest & 2,500 & 0.364 & 0.909 & 1.00 & 0.64 & 1.00 & 1.00 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\par\smallskip\parbox{0.92\linewidth}{\footnotesize\emph{টীকা:} শেষ চারটি কলাম দেখায় প্রতিটি ধরনের ত্রুটির কত অংশ শনাক্ত হয়েছে। ডেটার একটি অনুলিপিতে প্রতিটি ধরনের 250টি ত্রুটি রোপণ করা হয়েছে।}
+\end{table}

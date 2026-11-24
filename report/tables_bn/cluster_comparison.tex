@@ -1,0 +1,21 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{নির্বাচিত ক্লাস্টার-সংখ্যায় ক্লাস্টারিং অ্যালগরিদমগুলোর তুলনা}
+\label{tab:clustercompare}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{Problem} & \textbf{Algorithm} & \textbf{k} & \textbf{Silhouette} & \textbf{Davies-Bouldin} & \textbf{Calinski-Harabasz} \\
+\midrule
+Products & K-Means & 5 & 0.237 & 1.271 & 16.2 \\
+Products & Agglomerative (Ward) & 5 & 0.212 & 1.195 & 14.9 \\
+Products & Gaussian Mixture & 5 & 0.233 & 1.237 & 15.3 \\
+Market cells & K-Means & 4 & 0.243 & 1.497 & 54.2 \\
+Market cells & Agglomerative (Ward) & 4 & 0.250 & 1.467 & 48.9 \\
+Market cells & Gaussian Mixture & 4 & 0.165 & 1.753 & 42.4 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\par\smallskip\parbox{0.92\linewidth}{\footnotesize\emph{টীকা:} উচ্চতর silhouette ও Calinski--Harabasz এবং নিম্নতর Davies--Bouldin মান বেশি পৃথক ক্লাস্টার নির্দেশ করে।}
+\end{table}

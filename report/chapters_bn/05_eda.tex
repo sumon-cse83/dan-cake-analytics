@@ -1,0 +1,124 @@
+\chapter{অনুসন্ধানমূলক ডেটা বিশ্লেষণ}\label{ch:eda}
+
+এই অধ্যায় বর্ণনামূলক প্রশ্ন, \emph{কী ঘটেছে?}, এর উত্তর দেয় এবং \emph{কেন} প্রশ্নের উত্তর দেওয়া শুরু করে। সব ফলাফল
+\texttt{eda.py} দিয়ে পূর্ণ পরিষ্কার ডেটাসেটে হিসাব করা।
+
+\section{সামগ্রিক কর্মদক্ষতা ও প্রবৃদ্ধি}
+পুরো সময়কালে কোম্পানি \NRows টি অর্ডারে \TotalUnits মিলিয়ন ইউনিট বিক্রি করেছে, যার নিট বিক্রয়মূল্য \TotalSales মিলিয়ন টাকা।
+গড় অর্ডারের মূল্য ছিল \AOV টাকা, এবং ডিসকাউন্ট গড়ে মোট মূল্যের \AvgDiscount\%, যার মোট খরচ \DiscountCost মিলিয়ন টাকা।
+\Cref{tab:annual} ও \cref{fig:trend} স্থির প্রবৃদ্ধি দেখায়। প্রথম ও শেষ পূর্ণ বছরের মধ্যে (2020--2025) নিট বিক্রয় বছরে
+\CAGRSales\% চক্রবৃদ্ধি হারে বেড়েছে, এবং জানুয়ারি--সেপ্টেম্বর 2026-এর বিক্রয় 2025-এর একই মাসগুলোর তুলনায় \YTDGrowth\% বেশি।
+
+\input{tables_bn/annual_summary.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{eda_monthly_trend}
+\caption{মাসিক নিট বিক্রয় ও 12-মাসের চলমান গড় (উপরে) এবং মাসিক বিক্রীত ইউনিট (নিচে)}\label{fig:trend}
+\end{figure}
+
+\subsection{প্রবৃদ্ধি কোথা থেকে আসে?}
+ইউনিট বেড়েছে বছরে মাত্র \CAGRUnits\%, অথচ গড় বিক্রয়মূল্য বেড়েছে বছরে \CAGRPrice\%। বিক্রয় প্রবৃদ্ধিকে হুবহু বিভাজন করা যায়:
+$(1+g_{\text{sales}}) = (1+g_{\text{volume}})(1+g_{\text{price}})$। \Cref{tab:pricevolume} ও \cref{fig:pricevolume} দেখায় যে গড়ে
+বার্ষিক প্রবৃদ্ধির প্রায় \AvgVolGrowth শতাংশ-বিন্দু এসেছে পরিমাণ থেকে এবং \AvgPriceGrowth এসেছে মূল্য ও পণ্য-মিশ্রণ থেকে। 2021-এর
+ব্যতিক্রমী বৃদ্ধি বেশি দামের গিফট বক্স চালুর সঙ্গে মিলে যায় (একটি মিশ্রণ-প্রভাব); পরের বছরগুলো নিয়মিত তালিকা-মূল্য বৃদ্ধির প্রতিফলন।
+ব্যবস্থাপনার জন্য এই পার্থক্য গুরুত্বপূর্ণ: মূল্য-নির্ভর প্রবৃদ্ধি অনির্দিষ্টকাল চলতে পারে না, একসময় তা ভোক্তার ক্রয়-সামর্থ্যের সীমায় পৌঁছায়।
+
+\input{tables_bn/price_volume.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{eda_price_volume}
+\caption{প্রবৃদ্ধির বিভাজন (বামে) এবং মূল্য বনাম পরিমাণ সূচক (ডানে)}\label{fig:pricevolume}
+\end{figure}
+
+\subsection{চাহিদা কি মূল্য-সংবেদনশীল?}
+মূল্যের প্রভাবকে সাধারণ প্রবৃদ্ধি থেকে আলাদা করতে পণ্য-মাস প্যানেলে একটি fixed-effects রিগ্রেশন দিয়ে চাহিদার মূল্য-স্থিতিস্থাপকতা
+নির্ণয় করা হয়েছে:
+\[
+  \log(\text{units}_{pt}) = \beta \log(\text{price}_{pt}) + \alpha_p + \gamma_{\text{year}(t)} + \delta_{\text{month}(t)} + \varepsilon_{pt}.
+\]
+পণ্য-প্রভাব $\alpha_p$ পণ্যগুলোর আকারের পার্থক্য, বছর-প্রভাব সাধারণ বাজার-প্রবৃদ্ধি এবং মাস-প্রভাব মৌসুমিতা শোষণ করে। নির্ণীত
+স্থিতিস্থাপকতা $\hat\beta = \Elasticity$, 95\% আস্থা-ব্যবধান \ElasticityLo থেকে \ElasticityHi (robust standard error;
+$p = \ElasticityP$; $R^2 = \ElasticityRtwo$)। এটি শূন্য থেকে তাৎপর্যপূর্ণভাবে আলাদা নয়, অর্থাৎ পর্যবেক্ষিত সীমার মধ্যে চাহিদা
+\emph{মূল্য-অস্থিতিস্থাপক}। বছর-প্রভাব ছাড়া একটি সরল রিগ্রেশন বিভ্রান্তিকর \emph{ধনাত্মক} স্থিতিস্থাপকতা (\ElasticityNaive) দেয়,
+কারণ সময়ের সঙ্গে মূল্য ও পরিমাণ দুটোই বেড়েছে। এটি confounding-এর একটি পাঠ্যপুস্তকীয় উদাহরণ, এবং এ কারণেই ব্যাখ্যামূলক মডেল
+সতর্কভাবে নির্দিষ্ট করতে হয় \citep{shmueli2010}।
+
+\section{মৌসুমিতা ও ক্যালেন্ডারের প্রভাব}
+বিক্রয়ে একটি স্পষ্ট বার্ষিক চক্র রয়েছে (\cref{fig:seasonality})। ডিসেম্বর সবচেয়ে শক্তিশালী মাস, মৌসুমি সূচক \PeakIndex
+(গড় মাস = 100); অক্টোবর (\OctIndex) ও নভেম্বরও (\NovIndex) গড়ের উপরে, যা বছর-শেষের উৎসব ও উপহারের মৌসুমের সঙ্গে সামঞ্জস্যপূর্ণ।
+ফেব্রুয়ারি সবচেয়ে দুর্বল (\TroughIndex)। ফেব্রুয়ারির দুর্বলতার একটি অংশ কেবল এর কম দিনসংখ্যার কারণে: প্রতি কর্মদিবস হিসেবে এর সূচক
+\FebPerDay, অথচ ডিসেম্বরের প্রতিদিনের সূচক উচ্চই থাকে (\DecPerDay)। প্রবণতা-মুক্ত দৈনিক বিক্রয়ে Kruskal--Wallis টেস্ট নিশ্চিত করে যে
+ক্যালেন্ডারের মাস গুরুত্বপূর্ণ ($H = \KWMonthH$, $p<0.001$)। বিপরীতে সপ্তাহের দিনের প্রভাব প্রায় নেই: সপ্তাহের দিনগুলোর গড় দৈনিক
+বিক্রয়ের coefficient of variation মাত্র \DowCV\%।
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{eda_seasonality}
+\caption{মাস অনুযায়ী মৌসুমি সূচক (বামে) এবং বছর $\times$ মাস অনুযায়ী নিট বিক্রয়ের heat map (ডানে)}\label{fig:seasonality}
+\end{figure}
+
+\section{পণ্য ও ক্যাটাগরি}
+\Cref{tab:category} ও \cref{fig:pareto} ক্যাটাগরি-কাঠামো দেখায়। \TopCategory সবচেয়ে বড় ক্যাটাগরি (বিক্রয়ের \TopCategoryShare\%),
+এরপর Pound Cake ও Swiss Roll। Layer Cake-এর প্রবৃদ্ধির হার সর্বোচ্চ (বছরে \FastCategoryCAGR\%), যা মূলত 2021-এ যুক্ত গিফট-বক্স
+সংস্করণ থেকে এসেছে; এটি মনে করিয়ে দেয় যে ক্যাটাগরির প্রবৃদ্ধিতে স্বাভাবিক প্রবৃদ্ধি ও পণ্য-পরিসর পরিবর্তন মিশে থাকে। Pareto বিশ্লেষণ
+\NProducts টি পণ্যকে ভাগ করে \NClassA টি A-শ্রেণির পণ্যে (যারা আয়ের 80\% আনে), \NClassB টি B-শ্রেণি ও \NClassC টি C-শ্রেণিতে।
+সর্বাধিক বিক্রীত দশটি পণ্যই নিট বিক্রয়ের \TopTenShare\% দেয় (\cref{tab:topproducts})।
+
+\input{tables_bn/category_summary.tex}
+\input{tables_bn/top_products.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{eda_category_pareto}
+\caption{ক্যাটাগরি অনুযায়ী নিট বিক্রয়ের অংশ (বামে) এবং পণ্যের Pareto বক্ররেখা (ডানে)}\label{fig:pareto}
+\end{figure}
+
+\section{অঞ্চল, চ্যানেল ও গ্রাহক}
+বিক্রয় ভৌগোলিকভাবে কেন্দ্রীভূত। ঢাকা একাই নিট বিক্রয়ের \DhakaShare\% আনে, আর ঢাকা ও চট্টগ্রাম মিলে \DhakaCtgShare\%
+(\cref{tab:segments})। General Trade প্রধান চ্যানেল (\GTShare\%), এরপর Modern Trade (\MTShare\%), Distributor (\DistShare\%) ও
+E-commerce (\EcomShare\%)। চ্যানেলভেদে অর্ডারের আকারে বড় পার্থক্য: একটি ডিস্ট্রিবিউটর অর্ডারে গড়ে \DistQty ইউনিট, E-commerce অর্ডারে
+\EcomQty, General Trade-এ \GTQty এবং Modern Trade-এ \MTQty (\cref{fig:regionchannel})। অন্যদিকে গ্রাহকের ধরন অর্ডারের আকারে কোনো
+পার্থক্য আনে না (Kruskal--Wallis $p=\PCustType$), এবং গ্রাহকের ধরনভেদে গড় অর্ডার-মূল্য প্রায় অভিন্ন। অর্থাৎ অর্ডারের আকার নির্ধারণ করে
+\emph{বাজারে পৌঁছানোর পথ}, গ্রাহক কে তা নয়।
+
+\input{tables_bn/segment_summary.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{eda_region_channel}
+\caption{অঞ্চল ও চ্যানেল অনুযায়ী নিট বিক্রয় (বামে) এবং অর্ডারপ্রতি গড় ইউনিট (ডানে)}\label{fig:regionchannel}
+\end{figure}
+
+\section{বণ্টন ও সম্পর্ক}
+অর্ডারের পরিমাণ ও অর্ডার-মূল্য তীব্রভাবে ডানদিকে বিষম, skewness যথাক্রমে \QtySkew ও \ValueSkew (\cref{fig:distributions}):
+অধিকাংশ অর্ডার ছোট, এবং বাল্ক অর্ডারের একটি দীর্ঘ লেজ আছে। এই আকৃতিই বিশ্লেষণ জুড়ে median, rank-ভিত্তিক টেস্ট ও log রূপান্তর
+ব্যবহারের যৌক্তিকতা দেয়। Spearman সম্পর্ক-ম্যাট্রিক্স (\cref{fig:correlation}) দেখায় যে অর্ডার-মূল্য পরিমাণ ($\rho=\CorrSalesQty$) ও
+মূল্য ($\rho=\CorrSalesPrice$) উভয় দিয়েই চালিত, কিন্তু পরিমাণ ও মূল্য কার্যত সম্পর্কহীন ($\rho=\CorrQtyPrice$): গ্রাহকরা বেশি দামের
+পণ্যের কম প্যাক কেনেন না।
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{eda_distributions}
+\caption{অর্ডারপ্রতি ইউনিট, অর্ডার-মূল্য (log স্কেল) ও ডিসকাউন্টের বণ্টন}\label{fig:distributions}
+\end{figure}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.62\linewidth]{eda_correlation}
+\caption{প্রধান সংখ্যাসূচক চলকগুলোর Spearman সম্পর্ক-ম্যাট্রিক্স}\label{fig:correlation}
+\end{figure}
+
+\section{হাইপোথিসিস টেস্ট}
+\Cref{tab:tests} প্রধান অনুসন্ধানমূলক ফলাফলগুলোকে আনুষ্ঠানিক রূপ দেয়। পাঁচ লক্ষ পর্যবেক্ষণে দুটি বাদে সব পার্থক্যই পরিসংখ্যানিকভাবে
+তাৎপর্যপূর্ণ, তাই ব্যাখ্যার জন্য effect size অপরিহার্য। অর্ডারের আকারের সবচেয়ে বেশি পরিবর্তন ব্যাখ্যা করে চ্যানেল
+($\varepsilon^2=\EpsChannel$), তারপর অঞ্চল ($\varepsilon^2=\EpsRegion$)। চ্যানেল ও বড় অর্ডারের সম্পর্ক মাঝারি (Cram\'er's
+$V=\CramerV$)। ডিসকাউন্টের গভীরতা ও অর্ডারের আকার \emph{সম্পর্কহীন} ($\rho=\RhoDisc$, $p=\PDisc$): প্রদত্ত ডিসকাউন্ট বড় কেনাকাটায়
+উৎসাহ দেয় বলে মনে হয় না। এটি একটি সম্ভাব্য মূল্যবান ফলাফল, কারণ এই সময়কালে ডিসকাউন্টে কোম্পানির খরচ হয়েছে \DiscountCost মিলিয়ন টাকা।
+
+\input{tables_bn/stat_tests.tex}
+
+\section{অনুসন্ধানমূলক ফলাফলের সারসংক্ষেপ}
+\begin{enumerate}
+  \item আয়ের প্রবৃদ্ধি শক্তিশালী (বছরে \CAGRSales\%) কিন্তু মূলত মূল্য ও মিশ্রণ-চালিত; পরিমাণ বাড়ছে \CAGRUnits\% হারে।
+  \item পর্যবেক্ষিত সীমায় চাহিদা মূল্য-অস্থিতিস্থাপক, এবং ডিসকাউন্টের অর্ডারের আকারে কোনো পরিমাপযোগ্য প্রভাব নেই।
+  \item মৌসুমিতা স্পষ্ট: ডিসেম্বরে শীর্ষ ও ফেব্রুয়ারিতে সর্বনিম্ন; সপ্তাহের দিনের প্রভাব নেই।
+  \item আয় কেন্দ্রীভূত: ঢাকা বিক্রয়ের \DhakaShare\% এবং দশটি পণ্য \TopTenShare\% দেয়।
+  \item অর্ডারের আকার নির্ভর করে চ্যানেল ও অঞ্চলের উপর, গ্রাহকের ধরনের উপর নয়।
+\end{enumerate}
+এই ফলাফলগুলো পরের অধ্যায়ের মডেলিং সিদ্ধান্তে কাজে লেগেছে: পূর্বাভাসে মৌসুমিতা ও ইতিহাস-ফিচার, ক্লাসিফিকেশনে চ্যানেল ও অঞ্চল, এবং
+বিভাজনে মূল্য, প্রবৃদ্ধি ও মৌসুমিতা।

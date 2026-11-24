@@ -1,0 +1,81 @@
+\chapter{ডেটা অভিধান}\label{app:dictionary}
+\begin{table}[htbp]\centering\footnotesize
+\caption{লেনদেন ডেটাসেটের ডেটা অভিধান}\label{tab:dictionary}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+\textbf{কলাম} & \textbf{ধরন} & \textbf{বিবরণ} \\ \midrule
+Transaction\_ID & টেক্সট & অনন্য লেনদেন শনাক্তকারী (যেমন DC2020000000) \\
+Date & তারিখ & লেনদেনের তারিখ (dd-mm-yy) \\
+Year, Month, Month\_Name, Quarter & পূর্ণসংখ্যা/টেক্সট & তারিখ থেকে নির্ণীত ক্যালেন্ডার-বৈশিষ্ট্য \\
+Product\_ID, Product\_Name & টেক্সট & পণ্যের কোড ও নাম (\NProducts টি পণ্য) \\
+Category & টেক্সট & পণ্যের ক্যাটাগরি (13টি) \\
+Pack\_Size & টেক্সট & প্যাক সাইজ, যেমন 30g, 27--30g, 30g x 12, 5 pcs \\
+Product\_Launch\_Year & পূর্ণসংখ্যা & পণ্য চালুর বছর \\
+Observed\_Price\_BDT & পূর্ণসংখ্যা & মুদ্রিত সর্বোচ্চ খুচরা মূল্য \\
+List\_Price\_BDT & পূর্ণসংখ্যা & বছরের কোম্পানি-নির্ধারিত তালিকা মূল্য \\
+Market\_Price\_BDT & দশমিক & ডিসকাউন্টের আগে লেনদেন-মূল্য \\
+Discount\_\% & দশমিক & ডিসকাউন্টের শতাংশ \\
+Unit\_Selling\_Price\_BDT & দশমিক & ডিসকাউন্টের পরে একক মূল্য \\
+Quantity & পূর্ণসংখ্যা & বিক্রীত ইউনিট \\
+Gross\_Sales\_BDT & দশমিক & পরিমাণ $\times$ বাজার মূল্য \\
+Discount\_BDT & দশমিক & ডিসকাউন্টের পরিমাণ \\
+Net\_Sales\_BDT & দশমিক & মোট বিক্রয় $-$ ডিসকাউন্ট \\
+Region & টেক্সট & বাংলাদেশের 11টি অঞ্চলের একটি \\
+Channel & টেক্সট & General Trade, Modern Trade, Distributor, E-commerce \\
+Customer\_Type & টেক্সট & Retailer, Super Shop, Distributor, Corporate, Online Customer \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\chapter{টিউন করা Hyper-parameter}\label{app:hyper}
+\input{tables_bn/hyperparameters.tex}
+
+\chapter{উদাহরণ SQL কোয়েরি}\label{app:sql}
+নিচের কোয়েরিগুলো স্টার স্কিমায় (\cref{fig:star}) চলে এবং \cref{ch:eda}-এর প্রধান সংখ্যাগুলো সরাসরি SQL-এ পুনরুৎপাদন করে। এগুলো একটি
+Power BI প্রতিবেদনের ডেটা-উৎস হিসেবেও ব্যবহার করা যায়।
+\lstinputlisting[language=SQL]{sql/kpi_queries.sql}
+
+\chapter{প্রকল্পটি পুনরুৎপাদন ও প্রকাশ}\label{app:reproduce}
+\section{প্রকল্পের কাঠামো}
+\begin{lstlisting}
+dan_cake_project/
+  run_pipeline.py          one command for the whole framework
+  src/dancake/             config, data, eda, features, forecasting, classification,
+                           clustering, anomaly, insights, export, website
+  dashboard/app.py         Streamlit dashboard
+  data/  processed/ warehouse/ dashboard/   generated data
+  outputs/ metrics/ tables/ models/          generated results
+  report/  main.tex, main_bn.tex, chapters/, chapters_bn/, figures/, tables/, tables_bn/
+  docs/                    project website (GitHub Pages)
+  sql/  tests/  guides/
+\end{lstlisting}
+
+\section{নিজের কম্পিউটারে চালানো}
+\begin{lstlisting}[language=bash]
+python -m venv .venv
+.venv\Scripts\activate            # Windows  (source .venv/bin/activate on macOS/Linux)
+pip install -r requirements.txt
+python run_pipeline.py            # about 20 minutes
+python -m pytest tests            # automated tests
+streamlit run dashboard/app.py    # open http://localhost:8501
+\end{lstlisting}
+বাংলা প্রতিবেদন XeLaTeX দিয়ে কম্পাইল করতে হয়: \texttt{tectonic -X compile main\_bn.tex}, অথবা Overleaf-এ Compiler = XeLaTeX।
+
+\section{বিনামূল্যে প্রকাশ}
+\begin{enumerate}
+  \item একটি বিনামূল্যের GitHub অ্যাকাউন্ট ও একটি পাবলিক রিপোজিটরি তৈরি করে প্রকল্পটি push করুন (\texttt{.gitignore} কাঁচা CSV বাদ দেয়;
+        ছোট ড্যাশবোর্ড-ডেটা অন্তর্ভুক্ত থাকে)।
+  \item \textbf{ড্যাশবোর্ড:} GitHub দিয়ে Streamlit Community Cloud-এ সাইন ইন করে \emph{New app} বেছে নিন, রিপোজিটরি, branch
+        \texttt{main} ও ফাইল \texttt{dashboard/app.py} নির্বাচন করে deploy করুন। অ্যাপটি \texttt{.streamlit.app}-এ শেষ হওয়া একটি ঠিকানা পাবে।
+  \item \textbf{ওয়েবসাইট:} রিপোজিটরির settings-এ \emph{Pages} খুলে \emph{Deploy from a branch}, branch \texttt{main}, folder
+        \texttt{/docs} বেছে নিন। সাইটটি \path{https://<user>.github.io/<repo>}-এ প্রকাশিত হবে।
+  \item প্রকৃত লিংকসহ ওয়েবসাইটটি আবার তৈরি করুন (\texttt{src} ফোল্ডারের ভেতর থেকে), তারপর commit ও push করুন:
+\begin{lstlisting}[language=bash]
+python -m dancake.website --dashboard-url <app url> \
+                          --repo-url <repo url>
+\end{lstlisting}
+\end{enumerate}
+
+\section{পরবর্তী প্রকল্পে কাঠামোটির পুনঃব্যবহার}
+নতুন একটি বিক্রয় ডেটাসেটের জন্য কেবল \texttt{src/dancake/config.py} (পথ, কলামের নাম, train/test তারিখ) এবং ফিচার-ফাংশনের কলাম-তালিকা
+বদলাতে হবে। কাঠামোটি (যাচাই, পরিষ্কারকরণ, ওয়্যারহাউস, EDA, leakage-মুক্ত ফিচার, বেঞ্চমার্কসহ মডেল, ড্যাশবোর্ড, অন্তর্দৃষ্টি ও স্বয়ংক্রিয়
+প্রতিবেদন) অপরিবর্তিতভাবে মজুদ, অর্থ বা গ্রাহক অ্যানালিটিক্সের মতো অন্য ক্ষেত্রেও প্রয়োগ করা যায়।

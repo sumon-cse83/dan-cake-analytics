@@ -1,0 +1,208 @@
+{
+  "regression": [
+    {
+      "model": "Random Forest",
+      "MAE": 97.6408,
+      "RMSE": 125.3861,
+      "MAPE_%": 12.4617,
+      "R2": 0.6964,
+      "seconds": 1.6819
+    },
+    {
+      "model": "Gradient Boosting",
+      "MAE": 99.1373,
+      "RMSE": 127.7245,
+      "MAPE_%": 13.4756,
+      "R2": 0.685,
+      "seconds": 1.7849
+    },
+    {
+      "model": "Linear Regression",
+      "MAE": 100.7819,
+      "RMSE": 126.2935,
+      "MAPE_%": 14.2529,
+      "R2": 0.692,
+      "seconds": 0.041
+    },
+    {
+      "model": "XGBoost",
+      "MAE": 100.9051,
+      "RMSE": 129.414,
+      "MAPE_%": 13.4132,
+      "R2": 0.6766,
+      "seconds": 1.4707
+    },
+    {
+      "model": "KNN",
+      "MAE": 102.6231,
+      "RMSE": 132.7756,
+      "MAPE_%": 13.7658,
+      "R2": 0.6596,
+      "seconds": 0.0699
+    },
+    {
+      "model": "Decision Tree",
+      "MAE": 105.4489,
+      "RMSE": 137.2905,
+      "MAPE_%": 13.3181,
+      "R2": 0.636,
+      "seconds": 0.0287
+    },
+    {
+      "model": "SVM (SVR)",
+      "MAE": 128.9372,
+      "RMSE": 168.1474,
+      "MAPE_%": 17.6699,
+      "R2": 0.4541,
+      "seconds": 1.174
+    },
+    {
+      "model": "Baseline: same as last month",
+      "MAE": 139.7912,
+      "RMSE": 176.2119,
+      "MAPE_%": 17.9956,
+      "R2": 0.4004,
+      "seconds": NaN
+    }
+  ],
+  "classification": [
+    {
+      "model": "Logistic Regression",
+      "accuracy": 0.5925,
+      "precision": 0.3278,
+      "recall": 0.7648,
+      "F1": 0.4589,
+      "ROC_AUC": 0.7178,
+      "seconds": 0.199
+    },
+    {
+      "model": "Random Forest",
+      "accuracy": 0.6324,
+      "precision": 0.3447,
+      "recall": 0.6961,
+      "F1": 0.4611,
+      "ROC_AUC": 0.7118,
+      "seconds": 4.2448
+    },
+    {
+      "model": "XGBoost",
+      "accuracy": 0.6395,
+      "precision": 0.3392,
+      "recall": 0.6282,
+      "F1": 0.4405,
+      "ROC_AUC": 0.695,
+      "seconds": 1.7996
+    },
+    {
+      "model": "Gradient Boosting",
+      "accuracy": 0.7626,
+      "precision": 0.4412,
+      "recall": 0.1903,
+      "F1": 0.2659,
+      "ROC_AUC": 0.6931,
+      "seconds": 9.7468
+    },
+    {
+      "model": "Decision Tree",
+      "accuracy": 0.5125,
+      "precision": 0.2914,
+      "recall": 0.8082,
+      "F1": 0.4283,
+      "ROC_AUC": 0.6859,
+      "seconds": 0.2425
+    },
+    {
+      "model": "SVM (SVC)",
+      "accuracy": 0.6551,
+      "precision": 0.348,
+      "recall": 0.6028,
+      "F1": 0.4413,
+      "ROC_AUC": 0.6829,
+      "seconds": 62.4313
+    },
+    {
+      "model": "KNN",
+      "accuracy": 0.7797,
+      "precision": 0.5843,
+      "recall": 0.0859,
+      "F1": 0.1497,
+      "ROC_AUC": 0.6527,
+      "seconds": 3.073
+    },
+    {
+      "model": "Baseline: always the most common class",
+      "accuracy": 0.7741,
+      "precision": 0.0,
+      "recall": 0.0,
+      "F1": 0.0,
+      "ROC_AUC": 0.5,
+      "seconds": NaN
+    }
+  ],
+  "kmeans": {
+    "silhouette": {
+      "2": 0.5349,
+      "3": 0.2136,
+      "4": 0.1894,
+      "5": 0.1836,
+      "6": 0.196,
+      "7": 0.1959,
+      "8": 0.2135
+    },
+    "best_k": 2,
+    "product_cluster": {
+      "BRD001": 1,
+      "BRO001": 0,
+      "COO001": 0,
+      "COO002": 0,
+      "COO003": 0,
+      "CRS001": 1,
+      "DRY001": 0,
+      "DRY002": 0,
+      "DRY003": 0,
+      "FRU001": 0,
+      "FRU002": 0,
+      "FRU003": 0,
+      "FRU004": 0,
+      "FRU005": 0,
+      "LAC001": 1,
+      "LAY001": 0,
+      "LAY002": 0,
+      "LAY003": 0,
+      "LAY004": 0,
+      "MUF001": 0,
+      "MUF002": 0,
+      "MUF003": 0,
+      "MUF004": 0,
+      "MUF005": 0,
+      "MUF006": 0,
+      "MUF007": 0,
+      "MUF008": 0,
+      "MUF009": 0,
+      "PLA001": 0,
+      "PLA002": 0,
+      "PLA003": 0,
+      "PLA004": 0,
+      "PLA005": 0,
+      "PLA006": 0,
+      "POU001": 0,
+      "POU002": 0,
+      "POU003": 0,
+      "POU004": 0,
+      "POU005": 0,
+      "POU006": 0,
+      "POU007": 0,
+      "POU008": 0,
+      "POU009": 0,
+      "POU010": 0,
+      "POU011": 0,
+      "POU012": 0,
+      "RUT001": 0,
+      "SWR001": 0,
+      "SWR002": 0,
+      "SWR003": 0,
+      "SWR004": 0,
+      "VEL001": 0
+    }
+  }
+}

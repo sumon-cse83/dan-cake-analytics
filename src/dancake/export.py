@@ -152,3 +152,5 @@ def run(d: pd.DataFrame):
     hyperparameter_table()
     (C.REPORT / "sql").mkdir(exist_ok=True)                    # keep the report folder self-contained (Overleaf)
     shutil.copy(C.ROOT / "sql" / "kpi_queries.sql", C.REPORT / "sql" / "kpi_queries.sql")
+    from . import report_bn                                    # Bangla captions/notes/insights for main_bn.tex
+    report_bn.run()
