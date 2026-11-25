@@ -1,0 +1,431 @@
+\chapter{System Design and Implementation}\label{ch:system}
+
+This chapter describes how the methodology of \cref{ch:method} was turned into a working system. It starts from
+the requirements, presents the layered architecture and the design of its modules, the dimensional data store
+and the interactive dashboard, and then explains how the system is deployed, tested and reproduced.
+
+\section{Requirements analysis}
+The requirements were derived from the objectives (O1--O7) and the evaluation criteria of the project proposal.
+Following \citet{sommerville2016}, they are divided into functional requirements, which state what the system
+must do, and non-functional requirements, which state the qualities it must have
+(\cref{tab:funreq,tab:nonfunreq}). Each requirement is traced to the part of the system that satisfies it and to
+the evidence that it was met.
+
+\begin{table}[htbp]\centering\small
+\caption{Functional requirements and their implementation}\label{tab:funreq}
+\begin{tabularx}{\linewidth}{@{}lX>{\raggedright\arraybackslash}p{3.7cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Requirement} & \textbf{Implemented in} \\ \midrule
+FR1 & Load the raw transaction file with explicit types and validate it against schema, domain and identity rules & \texttt{data.py} \\
+FR2 & Repair missing, duplicate and impossible values and flag statistical outliers, with a cleaning log & \texttt{data.py} \\
+FR3 & Store cleaned data in a queryable dimensional model & \texttt{data.py}, SQLite \\
+FR4 & Produce descriptive statistics, trend, seasonality, concentration and hypothesis tests & \texttt{eda.py} \\
+FR5 & Build leakage-safe features for monthly product demand & \texttt{features.py} \\
+FR6 & Train, tune and compare regression, classification, clustering and anomaly models against benchmarks & \texttt{forecasting.py}, \texttt{classification.py}, \texttt{clustering.py}, \texttt{anomaly.py} \\
+FR7 & Forecast twelve months ahead with prediction intervals & \texttt{forecasting.py} \\
+FR8 & Generate plain-language insights with recommended actions & \texttt{insights.py} \\
+FR9 & Present KPIs, analyses and forecasts in an interactive, filterable web dashboard & \texttt{dashboard/app.py} \\
+FR10 & Export every figure, table and number used by the report and website & \texttt{export.py}, \texttt{website.py} \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[htbp]\centering\small
+\caption{Non-functional requirements and how they were verified}\label{tab:nonfunreq}
+\begin{tabularx}{\linewidth}{@{}lp{3.1cm}X@{}}
+\toprule
+\textbf{ID} & \textbf{Quality} & \textbf{Target and verification} \\ \midrule
+NFR1 & Performance & Validate and clean \NRows rows in under one minute on a laptop; measured under 20 s \\
+NFR2 & Reproducibility & One command regenerates all outputs; fixed random seed; verified by repeated runs \\
+NFR3 & Correctness & Warehouse totals reconcile with the cleaned data to 0.00 BDT; nine automated tests pass \\
+NFR4 & Usability & Runs in any browser without installation; global filters; plain-language captions \\
+NFR5 & Availability and cost & Public HTTPS hosting on free platforms; automatic redeployment on every push \\
+NFR6 & Maintainability & Modules with a single responsibility; one configuration file; documented code \\
+NFR7 & Privacy & No personal data; raw file excluded from the public repository \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[every node/.style={font=\footnotesize},
+  actor/.style={draw, rounded corners, fill=gray!15, minimum width=2.5cm, minimum height=9mm, align=center},
+  uc/.style={draw, ellipse, minimum width=3.6cm, minimum height=8mm, align=center, fill=white},
+  arr/.style={thick}]
+\draw[rounded corners, dashed] (2.85,-4.55) rectangle (10.15,3.8);
+\node[font=\footnotesize\bfseries] at (6.5,3.4) {Dan Cake analytics framework};
+\foreach \i/\t in {1/Run pipeline,2/Validate and clean data,3/Train and evaluate models,4/Regenerate report and website,
+                   5/Explore KPIs and trends,6/View demand forecast,7/Check anomalies,8/Read insights and actions,9/Download forecast CSV}
+  \node[uc, minimum width=4.6cm] (u\i) at (6.5,{2.75-0.85*(\i-1)}) {\t};
+\node[actor] (an) at (0.6,1.475) {Data analyst};
+\node[actor] (mg) at (12.4,-2.2) {Manager};
+\foreach \i in {1,...,4} \draw[arr] (an.east) -- (u\i.west);
+\foreach \i in {5,...,9} \draw[arr] (mg.west) -- (u\i.east);
+\end{tikzpicture}
+\caption{Use-case view of the framework: the analyst operates the pipeline, managers consume its results}\label{fig:usecase}
+\end{figure}
+
+Two groups of users interact with the system (\cref{fig:usecase}). The \emph{data analyst} runs the pipeline,
+inspects the validation report and maintains the models; \emph{managers} use the dashboard and the website to
+monitor performance, read forecasts and act on the recommendations.
+
+\section{Architecture of the framework}
+The framework is organised in layers that mirror the workflow in the proposal (\cref{fig:architecture}). Each
+layer is a Python module with a single responsibility. The modules communicate only through files with stable
+formats (Parquet, SQLite and JSON), so any layer can be replaced without changing the others. For example, the
+Streamlit dashboard could be swapped for Power BI reading the same SQLite store.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[node distance=3.5mm, every node/.style={font=\footnotesize},
+  L/.style={draw=brand, rounded corners, fill=brand!7, minimum width=12.5cm, minimum height=8.5mm, align=left, text width=12cm},
+  arr/.style={-{Stealth[length=2mm]}, thick, brand}]
+\node[L] (a) {\textbf{1. Data sources} \hfill raw CSV export (\NRows transactions, \NCols columns)};
+\node[L, below=of a] (b) {\textbf{2. Ingestion \& validation} \hfill typed load, schema, rule and identity checks \hfill \texttt{data.py}};
+\node[L, below=of b] (c) {\textbf{3. Cleaning \& storage} \hfill imputation, de-duplication, outlier flags, star schema (SQLite) \hfill \texttt{data.py}};
+\node[L, below=of c] (d) {\textbf{4. Exploratory analytics} \hfill trends, seasonality, tests, elasticity \hfill \texttt{eda.py}};
+\node[L, below=of d] (e) {\textbf{5. Feature engineering} \hfill leakage-safe lags, rolling statistics, calendar, price \hfill \texttt{features.py}};
+\node[L, below=of e] (f) {\textbf{6. Machine learning} \hfill forecasting $\cdot$ classification $\cdot$ clustering $\cdot$ anomaly detection};
+\node[L, below=of f] (g) {\textbf{7. Evaluation \& explanation} \hfill benchmarks, metrics, permutation importance, SHAP};
+\node[L, below=of g] (h) {\textbf{8. Presentation} \hfill Streamlit dashboard $\cdot$ project website $\cdot$ \LaTeX{} report \hfill \texttt{dashboard/}};
+\node[L, below=of h, fill=accent!10, draw=accent] (i) {\textbf{9. Decision support} \hfill automatically generated insights and recommendations \hfill \texttt{insights.py}};
+\foreach \x/\y in {a/b,b/c,c/d,d/e,e/f,f/g,g/h,h/i} \draw[arr] (\x)--(\y);
+\end{tikzpicture}
+\caption{Layered architecture of the intelligent analytics framework}\label{fig:architecture}
+\end{figure}
+
+A single command, \texttt{python run\_pipeline.py}, executes all layers in order. It writes:
+\begin{itemize}
+  \item the cleaned dataset (\path{data/processed}) and the warehouse (\path{data/warehouse/dancake.db});
+  \item metrics in JSON (\path{outputs/metrics}) and tables in CSV (\path{outputs/tables});
+  \item every figure and \LaTeX{} table of this report (\path{report/figures}, \path{report/tables}), and a
+        file of \LaTeX{} macros holding every number quoted in the text (\path{report/generated/numbers.tex});
+  \item compact aggregated data for the dashboard and the website (\path{data/dashboard}).
+\end{itemize}
+Because no result is typed by hand, the report, dashboard and website cannot drift apart. A new month of data
+can be incorporated by re-running one command.
+
+\section{Module design}
+Following the principle of high cohesion and low coupling \citep{pressman2020}, each module has one
+responsibility and exposes a small number of functions (\cref{tab:modules}). Shared settings (file paths, column
+names, the train/test boundary and the random seed) live in a single configuration module. This avoids the
+``configuration debt'' that \citet{sculley2015} identify as a common weakness of machine-learning systems. The
+whole framework, including the dashboard, comprises about 3,900 lines of Python.
+
+\begin{table}[htbp]\centering\small
+\caption{Modules of the framework (package \texttt{src/dancake})}\label{tab:modules}
+\begin{tabularx}{\linewidth}{@{}lrX@{}}
+\toprule
+\textbf{Module} & \textbf{Lines} & \textbf{Responsibility} \\ \midrule
+\texttt{config.py} & 50 & paths, column names, train/test dates, random seed \\
+\texttt{data.py} & 220 & typed loading, validation report, cleaning, outlier flags, star-schema load \\
+\texttt{eda.py} & 304 & KPIs, trends, seasonality, Pareto/ABC, hypothesis tests, elasticity, EDA figures \\
+\texttt{features.py} & 86 & leakage-safe monthly panel features (lags, rolling, calendar, price, product) \\
+\texttt{forecasting.py} & 361 & seven regressors, naive and seasonal-naive baselines, Holt--Winters, SARIMA, recursive test, 12-month outlook \\
+\texttt{classification.py} & 191 & seven classifiers for large orders, threshold choice, permutation importance \\
+\texttt{clustering.py} & 203 & product and market segmentation, validity indices, cluster naming \\
+\texttt{anomaly.py} & 138 & daily residual monitoring and Isolation Forest transaction screening \\
+\texttt{insights.py} & 85 & rule-based generation of insights and recommended actions \\
+\texttt{export.py} & 156 & \LaTeX{} tables, number macros and dashboard data \\
+\texttt{website.py} & 166 & static project website \\
+\texttt{utils.py} & 89 & shared helpers: figure saving, JSON I/O, currency formatting, \LaTeX{} table writer \\
+\texttt{run\_pipeline.py} & 46 & orchestration: runs all layers in order \\
+\texttt{dashboard/app.py} & 383 & Streamlit dashboard with nine pages \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\Cref{fig:sequence} shows the order in which the orchestrator calls the modules and the artefacts that pass
+between them.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[every node/.style={font=\scriptsize},
+  life/.style={draw, fill=gray!12, minimum width=1.75cm, minimum height=7mm, align=center},
+  msg/.style={-{Stealth[length=1.6mm]}, thick}]
+\foreach \x/\n/\t in {0/r/run\_pipeline,2.1/d/data,4.2/e/eda,6.3/f/features + ML,8.4/x/export,10.5/w/dashboard \& site}{
+  \node[life] (\n) at (\x,0) {\texttt{\t}};
+  \draw[dashed, gray] (\x,-0.4) -- (\x,-6.2);}
+\draw[msg] (0,-0.9) -- node[above]{load + validate} (2.1,-0.9);
+\draw[msg] (2.1,-1.5) -- node[above]{clean.parquet, warehouse.db} (4.2,-1.5);
+\draw[msg] (0,-2.2) -- node[above, pos=0.7]{explore} (4.2,-2.2);
+\draw[msg] (4.2,-2.8) -- node[above]{eda.json, figures} (8.4,-2.8);
+\draw[msg] (0,-3.5) -- node[above, pos=0.8]{features, train, evaluate} (6.3,-3.5);
+\draw[msg] (6.3,-4.1) -- node[above]{metrics.json, forecasts} (8.4,-4.1);
+\draw[msg] (0,-4.8) -- node[above, pos=0.85]{export} (8.4,-4.8);
+\draw[msg] (8.4,-5.5) -- node[above]{tables, numbers.tex, dashboard data} (10.5,-5.5);
+\end{tikzpicture}
+\caption{Sequence of calls in one run of the pipeline and the artefacts exchanged}\label{fig:sequence}
+\end{figure}
+
+\section{Dimensional data store}
+The cleaned data are loaded into a star schema in SQLite (\cref{fig:star}). The fact table \texttt{fact\_sales}
+holds one row per transaction with its measures. The dimensions describe products, dates (including a
+Friday--Saturday weekend flag, as in Bangladesh) and the 220 market segments formed by region, channel and
+customer type. Indexes on the foreign keys make typical KPI queries return in well under a second. A
+reconciliation check confirms that total net sales in the warehouse equal the total in the cleaned dataset to
+the last paisa. \Cref{app:sql} lists example analytical SQL queries.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[every node/.style={font=\scriptsize},
+  T/.style={draw=brand, rectangle split, rectangle split parts=2, rounded corners, fill=white, text width=3.4cm, align=left},
+  F/.style={T, draw=accent, fill=accent!6, text width=3.8cm}]
+\node[F] (f) at (0,0) {\textbf{fact\_sales} (\NRows)\nodepart{second}transaction\_id\\date\_id (FK)\\product\_id (FK)\\segment\_id (FK)\\list/market/unit price\\discount\_pct, quantity\\gross, discount, net sales\\flag\_outlier\_qty};
+\node[T] (p) at (-5.2,1.6) {\textbf{dim\_product} (\NProducts)\nodepart{second}product\_id (PK)\\product\_name, category\\pack\_size, launch\_year\\mrp\_bdt};
+\node[T] (d) at (5.2,1.6) {\textbf{dim\_date} (2,465)\nodepart{second}date\_id (PK), date\\year, quarter, month\\day\_of\_week, is\_weekend};
+\node[T] (s) at (0,-4.1) {\textbf{dim\_segment} (220)\nodepart{second}segment\_id (PK)\\region, channel\\customer\_type};
+\draw[thick, brand] (f.west) -- (p.east); \draw[thick, brand] (f.east) -- (d.west); \draw[thick, brand] (f.south) -- (s.north);
+\end{tikzpicture}
+\caption{Star schema of the analytical data store}\label{fig:star}
+\end{figure}
+
+The star schema can be queried directly in SQL. \Cref{lst:sql} shows the analytical queries that reproduce the key figures of \cref{ch:eda}; they can also serve as the data source of a Power BI report.
+\lstinputlisting[language=SQL,caption={Analytical SQL queries on the star schema},label={lst:sql},basicstyle=\ttfamily\scriptsize]{sql/kpi_queries.sql}
+
+\section{Project structure}
+\begin{lstlisting}
+dan_cake_project/
+  run_pipeline.py          one command for the whole framework
+  src/dancake/             config, data, eda, features, forecasting, classification,
+                           clustering, anomaly, insights, export, website
+  dashboard/app.py         Streamlit dashboard
+  data/  processed/ warehouse/ dashboard/   generated data
+  outputs/ metrics/ tables/ models/          generated results
+  report/  main.tex, chapters/, figures/, tables/, generated/
+  docs/                    project website (GitHub Pages)
+  algorithms/              one lesson per algorithm (01-09), common.py,
+                           export_to_report.py, outputs/
+  tools/                   capture_screenshots.py (report screenshots)
+  01_...07_*.py            hands-on preprocessing and predictive-analytics scripts
+  sql/  tests/  guides/
+\end{lstlisting}
+
+\section{Interactive dashboard}\label{ch:dashboard}
+
+\subsection{Design goals}
+The dashboard is where the framework meets its users, the sales, supply-chain and senior managers. Following
+\citet{few2013}, \citet{tufte2001} and \citet{knaflic2015}, it was designed to meet five requirements:
+\begin{enumerate}
+  \item \textbf{At-a-glance KPIs}: net sales, units, orders, average order value, discount rate and
+        year-to-date growth appear at the top of the overview page;
+  \item \textbf{Consistent filtering}: one set of filters (years, region, channel, customer type, category)
+        applies across all pages;
+  \item \textbf{The three management questions}: pages progress from \emph{what happened} (overview, trends,
+        products, markets) to \emph{why} (drivers, segments) and \emph{what next} (forecast, anomalies,
+        recommendations);
+  \item \textbf{Honest presentation}: forecasts are always shown with prediction intervals, model accuracy is
+        visible to users, and colour is used only to encode meaning. Following \citet{tufte2001}, decoration
+        that carries no data (3-D effects, gauges, heavy grid lines) is avoided;
+  \item \textbf{Free and accessible}: the dashboard runs in any web browser and is hosted at no cost.
+\end{enumerate}
+
+\subsection{Implementation}
+The dashboard was built with Streamlit and Plotly in a single Python file (\path{dashboard/app.py}). It does
+not read the 500,000 raw rows. It reads compact aggregates produced by the pipeline: a monthly cube by region
+$\times$ channel $\times$ customer type $\times$ category, monthly product-by-region totals, forecasts, model
+scores, segment tables and anomaly lists. Their total size is about 2~MB, so the application starts in seconds
+on the free hosting tier, while every filter combination remains exact. Data are cached in memory after the
+first load. Each page has its own web address (for example \path{?page=forecast}), so a manager can bookmark
+or share a specific view. \Cref{tab:pages} lists the nine pages, and
+\cref{fig:dashoverview,fig:dashtrends,fig:dashproducts,fig:dashmarkets,fig:dashforecast,fig:dashmodels,fig:dashanomalies,fig:dashinsights,fig:dashquality}
+show each of them as deployed. All screenshots were captured automatically from the running application by
+\path{tools/capture_screenshots.py}, so they can be refreshed whenever the data change.
+
+\begin{table}[htbp]\centering\small
+\caption{Pages of the interactive dashboard}\label{tab:pages}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Page} & \textbf{Content} \\ \midrule
+Executive overview & KPI cards, monthly sales with moving average, category, region and channel mix, annual table \\
+Trends \& seasonality & Stacked trends by any dimension, year $\times$ month heat map, seasonal index, year-on-year lines \\
+Products \& portfolio & Top-$N$ products, Pareto/ABC analysis, ML product segments, single-product drill-down \\
+Markets \& customers & Region $\times$ channel heat maps, customer types, regional CAGR, ML market segments \\
+Demand forecast & 12-month outlook with interval, category and product forecasts, model leaderboard, CSV download \\
+Machine-learning models & Regression, classification and clustering results with feature importance \\
+Anomaly monitor & Daily sales against expected level with flagged days; most suspicious orders \\
+Insights \& recommendations & Automatically generated insights with recommended actions \\
+Data quality \& method & Validation report, cleaning log and architecture diagram \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Walk-through of the dashboard}
+\paragraph{What happened.} The \emph{executive overview} (\cref{fig:dashoverview}) opens with six KPI cards and
+the monthly sales trend with its 12-month average. Below them, the category, region and channel mix and an
+annual summary table answer the first questions a manager asks. The \emph{trends} page
+(\cref{fig:dashtrends}) shows how any dimension develops over time and makes the December peak and February
+trough visible in a year~$\times$~month heat map. The \emph{products} page (\cref{fig:dashproducts}) ranks the
+products, draws the Pareto curve with ABC classes and lets the user drill down into a single product. The
+\emph{markets} page (\cref{fig:dashmarkets}) compares regions, channels and customer types and shows the
+market segments found by clustering.
+
+\paragraph{What next.} The \emph{demand forecast} page (\cref{fig:dashforecast}) presents the 12-month outlook
+with its 80\% prediction interval, forecasts by category and product, and the leaderboard of forecasting
+models. The forecasts can be downloaded as CSV for the production plan. The \emph{machine-learning} page
+(\cref{fig:dashmodels}) exposes the evidence behind the forecasts: test errors of all models against the
+baselines, the recursive multi-step test and feature importance, plus the classification and clustering
+results in separate tabs.
+
+\paragraph{Control and action.} The \emph{anomaly monitor} (\cref{fig:dashanomalies}) plots daily sales against
+the expected level, marks the flagged days and lists the most suspicious orders for checking. The
+\emph{insights} page (\cref{fig:dashinsights}) turns all results into plain-language findings, each followed by
+a recommended action. Finally, the \emph{data quality} page (\cref{fig:dashquality}) documents the validation
+checks and the cleaning log, so users can see why the numbers can be trusted.
+
+\newcommand{\dashshot}[3]{%
+\begin{figure}[p]\centering
+\includegraphics[width=\linewidth,height=.86\textheight,keepaspectratio]{screens/#1}
+\caption{#2}\label{#3}
+\end{figure}}
+
+\dashshot{dash_overview}{Dashboard page 1 -- Executive overview: KPI cards, monthly trend, sales mix and annual summary}{fig:dashoverview}
+\dashshot{dash_trends_main}{Dashboard page 2 -- Trends and seasonality}{fig:dashtrends}
+\dashshot{dash_products_main}{Dashboard page 3 -- Products and portfolio, with Pareto/ABC analysis and product segments}{fig:dashproducts}
+\dashshot{dash_markets_main}{Dashboard page 4 -- Markets and customers, with region $\times$ channel heat maps and market segments}{fig:dashmarkets}
+\dashshot{dash_forecast_main}{Dashboard page 5 -- Demand forecast: 12-month outlook with its 80\% interval, category and product forecasts}{fig:dashforecast}
+\dashshot{dash_models_main}{Dashboard page 6 -- Machine-learning models: test errors against baselines, recursive test and feature importance}{fig:dashmodels}
+\dashshot{dash_anomalies_main}{Dashboard page 7 -- Anomaly monitor: daily sales against the expected level and suspicious orders}{fig:dashanomalies}
+\dashshot{dash_insights_main}{Dashboard page 8 -- Automatically generated insights and recommendations}{fig:dashinsights}
+\dashshot{dash_quality_main}{Dashboard page 9 -- Data quality and method}{fig:dashquality}
+\clearpage   % keep all nine screenshots inside this section
+
+\section{Deployment and operation}\label{sec:deployment}
+\subsection{Live system}
+The complete project is publicly available on three free platforms (\cref{tab:links}). The source code is
+version-controlled on GitHub. The interactive dashboard runs on Streamlit Community Cloud, and the project
+website, which also serves this report as a PDF, is hosted on GitHub Pages. All three use HTTPS. The raw
+transaction file is deliberately excluded from the public repository by \texttt{.gitignore}. Only the small,
+aggregated files that the dashboard needs are published, and commits use a private GitHub e-mail address.
+
+\begin{table}[htbp]\centering\small
+\caption{Public addresses of the deployed system}\label{tab:links}
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+\textbf{Component} & \textbf{Address} & \textbf{Platform} \\ \midrule
+Interactive dashboard & \dashurl & Streamlit Community Cloud \\
+Project website and PDF report & \siteurl & GitHub Pages \\
+Source code and history & \repo & GitHub \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Continuous deployment}
+Deployment is automatic (\cref{fig:cicd}). When a change is pushed to the \texttt{main} branch, Streamlit Cloud
+rebuilds the dashboard from \path{dashboard/app.py} and its small \path{dashboard/requirements.txt}, and GitHub
+Pages republishes the \path{docs/} folder. A new month of data therefore reaches managers through three steps:
+re-run the pipeline, commit, and push. No server needs to be maintained. On the free tier, the dashboard sleeps
+after several days without visitors and wakes in about half a minute on the next visit, which is acceptable for
+a monthly planning tool.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[every node/.style={font=\scriptsize},
+  box/.style={draw=brand, rounded corners, fill=brand!8, minimum width=2.45cm, minimum height=10mm, align=center},
+  web/.style={box, draw=accent, fill=accent!10},
+  arr/.style={-{Stealth[length=2mm]}, thick, brand}]
+\node[box] (data) at (0,0) {Raw sales data\\(local, private)};
+\node[box] (pipe) at (3.2,0) {\texttt{run\_pipeline.py}\\models, figures, report};
+\node[box] (git)  at (6.9,0) {GitHub repository\\\texttt{main} branch};
+\node[web] (st)   at (10.0,0.9) {Streamlit Cloud\\dashboard};
+\node[web] (gp)   at (10.0,-0.9) {GitHub Pages\\website + PDF};
+\node[box, minimum width=1.9cm] (users) at (12.85,0) {Managers\\(browser)};
+\draw[arr] (data) -- (pipe);
+\draw[arr] (pipe) -- node[above=0.5mm, align=center, font=\tiny]{git\\push} (git);
+\draw[arr] (git.east) -- ++(0.3,0) |- (st.west);  \draw[arr] (git.east) -- ++(0.3,0) |- (gp.west);
+\draw[arr] (st.east) -- ++(0.35,0) |- (users.west); \draw[arr] (gp.east) -- ++(0.35,0) |- (users.west);
+\end{tikzpicture}
+\caption{Continuous deployment: one push updates both the dashboard and the website}\label{fig:cicd}
+\end{figure}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{screens/website}
+\caption{Project website on GitHub Pages, with links to the live dashboard, the report and the source code}\label{fig:website}
+\end{figure}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{screens/github_repo}
+\caption{Public GitHub repository holding the code, the dashboard data, the website and the report}\label{fig:github}
+\end{figure}
+
+If a custom domain name is bought later, it can be attached to GitHub Pages through a DNS \texttt{CNAME} record
+without any change to the code. \Cref{app:reproduce} gives the step-by-step deployment procedure.
+
+\section{Testing and quality assurance}\label{sec:testing}
+Testing followed the practice recommended by \citet{sommerville2016}: automated unit tests for the components
+whose failure would silently corrupt results, complemented by integration checks inside the pipeline and by
+acceptance checks against the requirements.
+
+\paragraph{Unit tests.} The test suite (\path{tests/test_pipeline.py}, run with \texttt{pytest}) contains nine
+test cases. Each builds a small synthetic sample, damages it in a known way and asserts that the pipeline
+behaves correctly (\cref{tab:tests-unit}). All nine tests pass in about two seconds.
+
+\begin{table}[htbp]\centering\small
+\caption{Automated unit tests and the requirement each one protects}\label{tab:tests-unit}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash\footnotesize\ttfamily}p{4.3cm}Xl@{}}
+\toprule
+\normalfont\small\textbf{Test} & \textbf{What it asserts} & \textbf{Req.} \\ \midrule
+clean\_data\_\allowbreak passes\_validation & clean data show zero missing cells, zero duplicate IDs and exact accounting identities & FR1 \\
+missing\_values\_\allowbreak are\_derived\_exactly & 60 deleted quantities are restored exactly from the identities & FR2 \\
+duplicates\_and\_\allowbreak impossible\_values\_\allowbreak are\_fixed & exact and key duplicates are removed; a 250\% discount is repaired & FR2 \\
+outliers\_are\_\allowbreak flagged\_not\_deleted & a 400-unit order is kept and flagged & FR2 \\
+pack\_grams (4 cases) & pack sizes such as ``30g x 12'' are parsed to grams & FR5 \\
+features\_do\_not\_\allowbreak use\_the\_current\_month & lag and rolling features use only past months; changing the current month does not change its features & FR5, NFR3 \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Integration checks.} Each run of the pipeline checks its own outputs. The validation report is
+regenerated; total net sales in the SQLite warehouse are reconciled with the cleaned dataset (difference
+0.00 BDT); and every model is scored against its baseline, so a broken feature would show up immediately as a
+model that no longer beats the naive rule.
+
+\paragraph{Acceptance checks.} The deployed dashboard was opened page by page in a browser and every page was
+captured automatically by \path{tools/capture_screenshots.py}; the screenshots in \cref{ch:dashboard} are the
+result. The non-functional targets in \cref{tab:nonfunreq} were checked by timing the pipeline and by
+regenerating the complete report from a clean state.
+
+\section{Reproducing and re-using the framework}\label{app:reproduce}
+
+\subsection{Running locally}
+\begin{lstlisting}[language=bash]
+python -m venv .venv
+.venv\Scripts\activate            # Windows  (source .venv/bin/activate on macOS/Linux)
+pip install -r requirements.txt
+python run_pipeline.py            # about 20 minutes
+python -m pytest tests            # automated tests
+streamlit run dashboard/app.py    # open http://localhost:8501
+\end{lstlisting}
+
+\subsection{Running the algorithm study}
+Each experiment of \cref{ch:algorithms} is a separate script. They can be run in order, or step by step in
+VS Code by clicking \emph{Run Cell} above each \texttt{\# \%\%} marker. The export script then refreshes the
+tables, numbers and figures of \cref{ch:algorithms}.
+\begin{lstlisting}[language=bash]
+python algorithms/01_linear_regression.py      # ... up to 09_kmeans_clustering.py
+python algorithms/export_to_report.py           # update report tables and numbers
+python tools/capture_screenshots.py             # refresh dashboard screenshots
+                                                # (dashboard running on port 8510)
+\end{lstlisting}
+
+\subsection{Free deployment (as carried out)}
+\begin{enumerate}
+  \item A public GitHub repository was created and the project pushed (\repo). The raw CSV and intermediate
+        data are excluded by \texttt{.gitignore}; the small dashboard data are included.
+  \item \textbf{Dashboard:} in Streamlit Community Cloud, signed in with GitHub, \emph{Create app} $\rightarrow$
+        \emph{Deploy a public app from GitHub}; repository \path{sumon-cse83/dan-cake-analytics}, branch
+        \texttt{main}, file \texttt{dashboard/app.py}, app address \texttt{dan-cake-analytics}. The app is live
+        at \dashurl.
+  \item \textbf{Website:} GitHub Pages was enabled for branch \texttt{main}, folder \texttt{/docs}. The site is
+        live at \siteurl.
+  \item The website was regenerated with the real links (run inside \texttt{src}), then committed and pushed:
+\begin{lstlisting}[language=bash]
+python -m dancake.website --dashboard-url https://dan-cake-analytics.streamlit.app \
+                          --repo-url https://github.com/sumon-cse83/dan-cake-analytics
+\end{lstlisting}
+  \item Every later \texttt{git push} to \texttt{main} redeploys both the dashboard and the website
+        automatically (\cref{fig:cicd}).
+\end{enumerate}
+
+\subsection{Re-using the framework for another project}
+Only \texttt{src/dancake/config.py} (paths, column names, train/test dates) and the column lists in the
+feature functions need to change for a new sales dataset. The structure, namely validation, cleaning,
+warehouse, EDA, leakage-safe features, benchmarked models, dashboard, insights and generated report, transfers
+unchanged to other domains such as inventory, finance or customer analytics.
+
+\section{Chapter summary}
+The framework was implemented as a layered set of single-purpose Python modules, orchestrated by one command,
+with a star-schema warehouse, a nine-page Streamlit dashboard and a generated website and report. Ten functional
+and seven non-functional requirements were defined and traced to the implementation, and correctness is
+protected by automated tests and reconciliation checks. The system is deployed publicly at no cost with
+continuous deployment. \Cref{ch:results} now reports what the system found in the Dan Cake data and how well its
+models perform.

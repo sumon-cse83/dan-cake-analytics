@@ -7,7 +7,7 @@ follows the **same 10 phases**. Only the data-specific parts change.
 
 | Phase | File | What to do in a new project |
 |---|---|---|
-| 1. Problem definition | `report/chapters/01_introduction.tex` | Turn the business question into 2–4 analytical problems (forecast? classify? segment? detect?) |
+| 1. Problem definition | `report/chapters/ch1_introduction.tex` | Turn the business question into 2–4 analytical problems (forecast? classify? segment? detect?) |
 | 2. Configuration | `src/dancake/config.py` | Set the data path, column names, domain rules, train/test dates |
 | 3. Data validation & cleaning | `src/dancake/data.py` | Keep the order: placeholders → duplicates → essential fields → impossible values → derive → impute → flag outliers. Change the identities (e.g. `net = gross − discount`) to those of your data |
 | 4. Storage | `data.py: build_warehouse` | One fact table (events) + dimension tables (who/what/when/where) |

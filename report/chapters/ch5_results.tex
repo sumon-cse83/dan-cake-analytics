@@ -1,0 +1,881 @@
+\chapter{Results, Evaluation and Discussion}\label{ch:results}
+
+This chapter presents and discusses the results of the study. \Cref{ch:eda} answers the descriptive question
+\emph{what happened?} through exploratory analysis. \Cref{ch:models} reports the production models for
+forecasting, classification, segmentation and anomaly detection, and \cref{ch:algorithms} studies the nine
+algorithms one by one. The chapter then presents the decision-support insights, evaluates the system as a
+whole, decides the hypotheses, answers the research questions and compares the findings with the literature.
+
+\section{Exploratory data analysis}\label{ch:eda}
+
+This section answers the descriptive question, \emph{what happened?}, and begins to answer \emph{why}. All
+results were computed on the full cleaned dataset by \texttt{eda.py}.
+
+\subsection{Overall performance and growth}
+Over the whole period, the company sold \TotalUnits million units in \NRows orders, worth \BDT\TotalSales
+million in net sales. The average order was worth \BDT\AOV, and discounts averaged \AvgDiscount\% of gross
+value, a cost of \BDT\DiscountCost million. \Cref{tab:annual} and \cref{fig:trend} show steady growth. Between
+the first and the last complete year (2020--2025), net sales grew at a compound annual rate of \CAGRSales\%.
+Sales in January--September 2026 were \YTDGrowth\% above the same months of 2025.
+
+\input{tables/annual_summary.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{eda_monthly_trend}
+\caption{Monthly net sales with 12-month moving average (top) and monthly units sold (bottom)}\label{fig:trend}
+\end{figure}
+
+\subsubsection{Where does growth come from?}
+Units grew by only \CAGRUnits\% a year, whereas the average selling price grew by \CAGRPrice\% a year. Sales
+growth can be decomposed exactly as $(1+g_{\text{sales}}) = (1+g_{\text{volume}})(1+g_{\text{price}})$.
+\Cref{tab:pricevolume} and \cref{fig:pricevolume} show that, on average, about \AvgVolGrowth percentage points
+of annual growth came from volume and \AvgPriceGrowth from price and product mix. The exceptional rise in 2021
+coincides with the launch of higher-priced gift boxes, a mix effect. Later years reflect regular list-price
+increases. This distinction matters for management: price-led growth cannot continue indefinitely without
+eventually testing consumers' willingness to pay.
+
+\input{tables/price_volume.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{eda_price_volume}
+\caption{Decomposition of growth (left) and price versus volume indices (right)}\label{fig:pricevolume}
+\end{figure}
+
+\subsubsection{Is demand sensitive to price?}
+To separate the effect of price from that of general growth, the price elasticity of demand was estimated
+with a fixed-effects regression on the product-month panel \citep{wooldridge2020}:
+\[
+  \log(\text{units}_{pt}) = \beta \log(\text{price}_{pt}) + \alpha_p + \gamma_{\text{year}(t)} + \delta_{\text{month}(t)} + \varepsilon_{pt}.
+\]
+The product effects $\alpha_p$ absorb differences in size between products. The year effects absorb common
+market growth, and the month effects absorb seasonality. The estimated elasticity is
+$\hat\beta = \Elasticity$, with a 95\% confidence interval from \ElasticityLo to \ElasticityHi (robust standard
+errors; $p = \ElasticityP$; $R^2 = \ElasticityRtwo$). It is not significantly different from zero. Over the
+observed range, demand therefore appears \emph{price-inelastic}. A naive regression without year effects gives
+a misleading \emph{positive} elasticity of \ElasticityNaive, because prices and volumes both rose over time.
+This is a textbook illustration of confounding, and the reason explanatory models need careful
+specification \citep{shmueli2010}.
+
+\subsection{Seasonality and calendar effects}
+Sales show a clear annual cycle (\cref{fig:seasonality}). \PeakMonth is the strongest month, with a seasonal
+index of \PeakIndex (average month = 100). October (\OctIndex) and November (\NovIndex) are also above average,
+consistent with the year-end festive and gifting season. \TroughMonth is the weakest month (\TroughIndex). Part
+of February's weakness is simply its shorter length: per trading day its index is \FebPerDay, while December's
+per-day index remains high at \DecPerDay. A Kruskal--Wallis test on detrended daily sales confirms that
+calendar month matters ($H = \KWMonthH$, $p<0.001$). By contrast, the day of the week has almost no effect: the
+coefficient of variation of average daily sales across weekdays is only \DowCV\%.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{eda_seasonality}
+\caption{Seasonal index by month (left) and year $\times$ month heat map of net sales (right)}\label{fig:seasonality}
+\end{figure}
+
+\subsection{Products and categories}
+\Cref{tab:category} and \cref{fig:pareto} show the category structure. \TopCategory is the largest category
+(\TopCategoryShare\% of sales), followed by Pound Cake and Swiss Roll. Layer Cake has the highest growth rate
+(\FastCategoryCAGR\% a year). This growth comes mainly from gift-box variants added to the range in 2021, a
+reminder that category growth figures combine organic growth with range changes. The Pareto analysis divides
+the \NProducts products into \NClassA A-class products, which earn 80\% of revenue, and \NClassB B-class and
+\NClassC C-class products. The ten best-selling products alone deliver \TopTenShare\% of net sales
+(\cref{tab:topproducts}).
+
+\input{tables/category_summary.tex}
+\input{tables/top_products.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{eda_category_pareto}
+\caption{Share of net sales by category (left) and Pareto curve of products (right)}\label{fig:pareto}
+\end{figure}
+
+\subsection{Regions, channels and customers}
+Sales are geographically concentrated. Dhaka generates \DhakaShare\% of net sales, and Dhaka and Chattogram
+together \DhakaCtgShare\% (\cref{tab:segments}). General Trade is the main channel (\GTShare\%), followed by
+Modern Trade (\MTShare\%), Distributors (\DistShare\%) and E-commerce (\EcomShare\%). The channels differ
+sharply in order size. A distributor order averages \DistQty units, an E-commerce order \EcomQty, General Trade
+\GTQty and Modern Trade \MTQty (\cref{fig:regionchannel}). Customer type, on the other hand, makes no difference
+to order size (Kruskal--Wallis $p=\PCustType$), and average order values are almost identical across customer
+types. Order size is therefore governed by the \emph{route to market}, not by who the customer is.
+
+\input{tables/segment_summary.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{eda_region_channel}
+\caption{Net sales (left) and mean units per order (right) by region and channel}\label{fig:regionchannel}
+\end{figure}
+
+\subsection{Distributions and relationships}
+Order quantity and order value are strongly right-skewed, with skewness of \QtySkew and \ValueSkew
+respectively (\cref{fig:distributions}). Most orders are small, and a long tail of bulk orders exists. These
+shapes justify the use of medians, rank-based tests and log transformations throughout the analysis. The
+Spearman correlation matrix (\cref{fig:correlation}) shows that order value is driven by both quantity
+($\rho=\CorrSalesQty$) and price ($\rho=\CorrSalesPrice$). Quantity and price, however, are practically
+unrelated ($\rho=\CorrQtyPrice$): customers do not buy fewer packs of the more expensive products.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{eda_distributions}
+\caption{Distributions of units per order, order value (log scale) and discount}\label{fig:distributions}
+\end{figure}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.62\linewidth]{eda_correlation}
+\caption{Spearman correlation matrix of the main numeric variables}\label{fig:correlation}
+\end{figure}
+
+\subsection{Hypothesis tests}
+\Cref{tab:tests} formalises the main exploratory findings. With half a million observations, every difference
+except two is statistically significant, so effect sizes are essential for interpretation. Channel explains the
+most variation in order size ($\varepsilon^2=\EpsChannel$), followed by region ($\varepsilon^2=\EpsRegion$).
+The association between channel and large orders is moderate (Cram\'er's $V=\CramerV$). Discount depth and
+order size are \emph{uncorrelated} ($\rho=\RhoDisc$, $p=\PDisc$). The discounts given do not appear to
+stimulate larger purchases. This is a potentially valuable finding, because discounts cost the company
+\BDT\DiscountCost million over the period.
+
+\input{tables/stat_tests.tex}
+
+\subsection{Summary of exploratory findings}
+\begin{enumerate}
+  \item Revenue growth is strong (\CAGRSales\% a year) but mostly price- and mix-driven; volume grows at \CAGRUnits\%.
+  \item Demand is price-inelastic in the observed range, and discounts show no measurable effect on order size.
+  \item Seasonality is pronounced, with a \PeakMonth peak and a \TroughMonth trough; weekdays do not matter.
+  \item Revenue is concentrated: Dhaka provides \DhakaShare\% of sales and ten products provide \TopTenShare\%.
+  \item Order size depends on channel and region, not on customer type.
+\end{enumerate}
+These findings informed the modelling choices in the next section. Seasonality and history features are used
+for forecasting, channel and region for classification, and price, growth and seasonality for segmentation.
+\section{Predictive modelling results}\label{ch:models}
+
+This section answers the predictive question, \emph{what is likely to happen next?} It covers the four
+analytical problems in turn: demand forecasting, large-order classification, segmentation and anomaly detection.
+
+\subsection{Monthly demand forecasting}
+\subsubsection{Set-up}
+The forecasting panel contains \PanelSeries products observed monthly. There are \PanelTrain training rows
+(2020--2024) and \PanelTest test rows (January 2025 -- September 2026). Each model predicts
+$\log(1+\text{units})$, and the prediction is converted back to units. The log scale suits the multiplicative
+nature of demand and stops the largest products from dominating the fit. Seven algorithms were tuned by
+randomised search over the expanding-window folds described in \cref{ch:method}. \Cref{tab:hyper} in
+\Cref{tab:hyper} lists the selected hyper-parameters.
+
+\subsubsection{One-step-ahead results}
+\Cref{tab:forecast} reports test performance when each month is forecast with the actual history up to the
+previous month. This is the operational scenario of a monthly planning cycle. Every machine-learning model
+clearly beats both naive baselines. The best model, \BestReg, reaches RMSE \BestRegRMSE units, WAPE
+\BestRegWAPE\% and $R^2=\BestRegRtwo$. That is an RMSE \GainVsSNaive\% lower than the seasonal-naive rule
+(\SNaiveRMSE) and \GainVsNaive\% lower than the naive rule (\NaiveRMSE).
+
+\input{tables/forecast_models.tex}
+
+Three further observations stand out. First, the differences between the better models are small. RMSE values
+range only from \BestRegRMSE to \WorstRegRMSE units, and linear regression on log features (\LinRMSE) is
+competitive with the tree ensembles (random forest \RFRMSE, XGBoost \XGBRMSE). Once good lag and seasonal
+features exist, the problem is largely log-linear, and model complexity adds little. This agrees with
+\citet{makridakis2018}. Second, the single decision tree is the weakest learner (\DTRMSE), as expected from its
+high variance; averaging many trees in a forest removes most of this weakness \citep{breiman2001}. Third, the
+cross-validated scores on the training years rank the models similarly to the test scores. The validation
+design therefore gives a reliable guide to future performance. \Cref{fig:forecastcomp} compares the models and
+shows that predictions of \BestReg track the actual values closely across products of very different size.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{ml_forecast_comparison}
+\caption{Test RMSE of all forecasting models (left; best model highlighted, baselines in grey) and actual versus predicted units for the best model (right)}\label{fig:forecastcomp}
+\end{figure}
+
+\subsubsection{Recursive multi-step results}
+A harder test is to forecast all 21 test months from December 2024 \emph{without} seeing any actual data after
+training. Each month's predictions are fed back in as history for the next month. This is the scenario of an
+annual budget. \Cref{tab:recursive} shows that the best models degrade only modestly. \BestRec achieves a
+WAPE of \BestRecWAPE\% ($R^2=\BestRecRtwo$), still far better than repeating the 2024 pattern. XGBoost degrades
+the most under recursion. Errors compound when a model's own predictions become inputs, and boosted trees, which
+fit the training data closely, are more exposed to this.
+
+\input{tables/forecast_recursive.tex}
+
+\subsubsection{Company-level forecasting and model reconciliation}
+Product forecasts can be summed to a company total and compared with statistical models fitted directly to the
+total series (\cref{tab:company}, \cref{fig:companyfc}). At this aggregate level, the Holt--Winters model with
+additive trend and multiplicative seasonality is the most accurate, with a MAPE of only \HWMAPE\%. The summed
+machine-learning forecasts are also accurate but slightly less so. The result is consistent with the literature:
+smooth aggregate series favour statistical models, while the cross-learning ability of machine learning pays
+off at the level of individual products. The framework therefore combines the two through \emph{top-down
+reconciliation} \citep{athanasopoulos2009}. Holt--Winters sets the company total and its prediction interval,
+and the machine-learning model distributes that total across products. Product plans then add up exactly to the
+company plan.
+
+\input{tables/forecast_company.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{ml_company_forecast_test}
+\caption{Company monthly units: actual values and competing forecasts over the test period}\label{fig:companyfc}
+\end{figure}
+
+\subsubsection{What drives the forecasts?}
+\Cref{fig:importance} explains the models. For \BestReg, permutation importance shows that recent history
+(lags and rolling means) carries most of the information, followed by seasonal features. The XGBoost SHAP values
+give the same picture and also highlight the December indicator and the 12-month lag, which capture the
+seasonal peak. The price features have little influence. This matches the near-zero price elasticity found in
+\cref{ch:eda}, so the models and the explanatory analysis tell a consistent story.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{ml_feature_importance}
+\caption{Permutation importance for the best forecasting model (left) and mean absolute SHAP values for XGBoost (right)}\label{fig:importance}
+\end{figure}
+
+\subsubsection{Twelve-month outlook}
+The selected models were refitted on all data up to September 2026 and used to forecast October 2026 --
+September 2027 (\cref{tab:future}, \cref{fig:future}). Net sales for these twelve months are forecast at
+\BDT\FutSales million, with an 80\% interval from \FutSalesLo to \FutSalesHi million. That is \FutGrowth\% more
+than the previous twelve months (\BDT\PrevSales million). Units are expected to change by \FutUnitsGrowth\%, and
+the December peak is expected to recur. \FutTopCategory remains the largest category in the forecast. This
+outlook can feed directly into the production, procurement and budgeting processes.
+
+\input{tables/future_forecast.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{ml_future_forecast}
+\caption{Net sales outlook for October 2026 -- September 2027 with 80\% prediction interval}\label{fig:future}
+\end{figure}
+
+\subsection{Large-order classification}
+The classifier predicts, from information available when an order is entered, whether the order will contain
+at least 10 units. Large orders made up \ClsPosTrain\% of training orders and \ClsPosTest\% of test orders. The
+models were trained on \ClsTrain orders (2020--2024) and tested on \ClsTest orders (2025--2026). The features
+were channel, region, customer type, category, price, discount, pack size, product age and calendar variables,
+plus smoothed target encodings of channel $\times$ region and of product.
+
+\input{tables/classification_models.tex}
+
+\Cref{tab:classification} and \cref{fig:classification} show a clear and instructive result. All seven
+algorithms reach almost the same ROC-AUC, between \ClsAUCmin and \ClsAUC, and \ClsBest is the best. The model
+that always predicts ``not large'' would be \ClsMajority\% accurate yet useless. The tuned models instead
+recover most large orders (recall about \ClsRecall for \ClsBest) at moderate precision. Ranked by score, the top
+10\% of orders contain large orders \ClsLift times more often than average. The ceiling is set by the
+\emph{information} in the data, not by the algorithm. XGBoost (\ClsXGBAUC) gains nothing over logistic
+regression, and KNN (\ClsKNNAUC) is weakest because distances become uninformative over many one-hot features.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{ml_classification}
+\caption{ROC curves (left), confusion matrix of the best model (centre) and metric comparison (right) for large-order classification}\label{fig:classification}
+\end{figure}
+
+The XGBoost gain importance (\cref{fig:clsimp}) identifies the reason. The sales channel accounts for about
+\ClsChannelImp\% of the model's gain and region for about \ClsRegionImp\%. Product, price, discount and
+calendar contribute very little. In the test years \LargeDist\% of distributor orders were large, against only
+\LargeEcom\% of E-commerce orders. Order size within a channel and region is otherwise close to random. For
+decision-making, then, the useful output is a \emph{channel-and-region-level} expectation of large orders for
+logistics planning, rather than a precise order-by-order prediction.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.65\linewidth]{ml_classification_importance}
+\caption{Drivers of large orders: XGBoost gain aggregated by original variable}\label{fig:clsimp}
+\end{figure}
+
+\subsection{Segmentation}
+\subsubsection{Product portfolio}
+Each product was described by its log revenue, log average price, unit growth from 2023 to 2025, December
+seasonality index and month-to-month volatility. Order size and channel mix were excluded because they barely
+vary between products (\cref{ch:eda}) and would only add noise. The features were standardised. $K$-Means,
+agglomerative (Ward) and Gaussian-mixture clustering were compared for $k=2,\dots,8$
+(\cref{fig:clustering}, \cref{tab:clustercompare}). Within the practical range of three to five segments,
+$K$-Means with $k=\ProdK$ gave the best silhouette (\ProdSil) and a Davies--Bouldin index of \ProdDB. The
+resulting segments are summarised in \cref{tab:productclusters} and named automatically from their averages.
+
+\input{tables/product_clusters.tex}
+
+\subsubsection{Market segments}
+The 220 combinations of region, channel and customer type were clustered on their revenue, average order
+value, units per order, price, discount, growth and gift-pack share. $K$-Means selected $k=\MktK$ segments
+(silhouette \MktSil). They separate clearly into \emph{core retail trade} (General and Modern Trade in the large
+cities), \emph{bulk distribution}, small-ticket \emph{online and regional} cells, and a group of
+\emph{emerging high-growth} cells (\cref{tab:marketclusters}).
+
+\input{tables/market_clusters.tex}
+\input{tables/cluster_comparison.tex}
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{ml_clustering}
+\caption{Silhouette score by number of clusters (left); products (centre) and market cells (right) projected onto the first two principal components}\label{fig:clustering}
+\end{figure}
+
+The silhouette values (\ProdSil and \MktSil) indicate weak to moderate structure \citep{rousseeuw1987}. The
+segments are therefore useful summaries for strategy, not sharply separated natural groups. $K$-Means and Ward
+clustering agreed closely, while Gaussian mixtures performed worst on these small samples. This ranking is
+reported so that a reader can judge the robustness of the segmentation.
+
+\subsection{Anomaly detection}
+\subsubsection{Daily monitoring}
+For each day, an expected value was computed as a 31-day centred rolling median multiplied by the month-of-year
+seasonal factor. Deviations were scored on the log scale with the robust $z$-score
+$z = 0.6745\,(r-\tilde r)/\text{MAD}$ and, separately, with an Isolation Forest over four daily features.
+Together the two methods flagged \AnomDays of the 2,465 trading days: \AnomDaysZ by the robust $z$-score and
+\AnomDaysIF by the Isolation Forest (\cref{fig:anomdaily}, \cref{tab:dailyanom}). Most flagged days are
+unusually weak trading days. In a live deployment each would be checked against known causes such as public
+holidays, strikes or system outages.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=\linewidth]{anomaly_daily}
+\caption{Daily net sales, expected level and detected anomalies}\label{fig:anomdaily}
+\end{figure}
+\input{tables/daily_anomalies.tex}
+
+\subsubsection{Transaction screening}
+Without labelled errors, a detector's ability cannot be measured on the real data. Following the approach of
+the preprocessing scripts, 1,000 realistic errors of four types (250 each) were therefore planted in a copy of
+the 500,000 orders (\cref{tab:anomaly}). The per-product IQR rule on quantity detected only \AnomIQRRecall\% of
+the planted errors, because three of the four error types do not involve quantity. Simple business rules on
+price and discount caught \AnomRuleRecall\% with perfect precision but missed every quantity error. The
+Isolation Forest caught \AnomIFRecall\% across all four types. Price and discount errors were found completely,
+and most inflated quantities were found too. The lesson is that rules and machine learning are complementary.
+Rules are precise for known failure modes, and the Isolation Forest provides broad coverage for unknown ones.
+
+\input{tables/anomaly_detection.tex}
+
+\subsection{Summary of model evaluation}
+\begin{table}[htbp]\centering\small
+\caption{Summary of the selected model for each analytical problem}\label{tab:modelsummary}
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+\textbf{Problem} & \textbf{Selected approach} & \textbf{Key test result} \\ \midrule
+Product demand (1-step) & \BestReg & WAPE \BestRegWAPE\%, $R^2$ \BestRegRtwo \\
+Product demand (multi-step) & \BestRec, recursive & WAPE \BestRecWAPE\% \\
+Company total & Holt--Winters + top-down reconciliation & MAPE \HWMAPE\% \\
+Large orders & \ClsBest & ROC-AUC \ClsAUC, lift \ClsLift \\
+Product segments & $K$-Means, $k=\ProdK$ & silhouette \ProdSil \\
+Market segments & $K$-Means, $k=\MktK$ & silhouette \MktSil \\
+Transaction anomalies & rules OR Isolation Forest & recall \AnomComboRecall\% \\ \bottomrule
+\end{tabularx}
+\end{table}
+As the proposal required, models were selected on appropriate metrics \emph{and} business relevance, not on
+accuracy alone. Where a simpler model performed as well as a complex one, as with logistic regression versus
+XGBoost for classification, the simpler and more interpretable model is preferred.
+
+\Cref{tab:hyper} lists the hyper-parameters selected by the expanding-window search.
+\input{tables/hyperparameters.tex}
+
+\section{Algorithm-level study of nine machine-learning methods}\label{ch:algorithms}
+
+Section~7.4 of the project proposal named nine candidate algorithms: linear regression, logistic regression,
+decision tree, random forest, gradient boosting, XGBoost, support vector machine, $k$-nearest neighbours and
+$K$-means clustering. \Cref{ch:models} used them inside the production pipeline, with rich feature sets,
+randomised hyper-parameter search and statistical benchmarks. This section takes a complementary view. Each
+algorithm is studied \emph{on its own}, in a separate and fully transparent experiment, in order to show
+\emph{how} it learns, which settings control it, how it fails and what it contributes to the business problem.
+The experiments also serve as an independent check of \cref{ch:models}: they use a deliberately simpler feature
+set and separate code, so agreement between the two studies strengthens the conclusions.
+
+\subsection{Common experimental protocol}\label{sec:algoprotocol}
+\subsubsection{Three problems}
+All nine experiments use the same data and the same rules, implemented once in
+\path{algorithms/common.py}:
+\begin{itemize}
+  \item \textbf{Problem A -- regression.} Monthly units of each product. Transactions are aggregated into one row
+        per product and month, described by nine features that are known before the month starts: month, a
+        December indicator, product age, mean log price, mean discount, pack weight, and three history features
+        (units last month, units in the same month last year, and the mean of the previous three months).
+  \item \textbf{Problem B -- classification.} Whether an order is large ($\geq 10$ units), predicted from the 18
+        order-level features selected in the feature-engineering step (calendar, price, pack, history and the
+        smoothed channel~$\times$~region order size). Large orders form \LargeShareTrain of training orders and
+        \LargeShareTest of test orders, so the classes are imbalanced. A fixed random sample of 15,000 orders
+        from 2020--2024 and 15,000 from 2025--2026 is used by every algorithm. The sample keeps the slower
+        algorithms (SVM, KNN) practical and makes the comparison fair.
+  \item \textbf{Problem C -- clustering.} One profile per product (\KMProducts products) from 2020--2024: average
+        price, units per month on sale, average order size, average discount, share of large orders and the
+        share of December sales. There is no target variable.
+\end{itemize}
+
+\subsubsection{Four-way time split}
+Every supervised experiment follows the same sequence (\cref{fig:split}). Settings are chosen on 2024
+(validation) after learning from 2020--2023. The chosen setting is then refitted on 2020--2024, and the test
+period, January 2025 -- September 2026, is scored once. The test data therefore never influence any choice.
+Every model is compared with a naive baseline: ``units this month = units last month'' for problem~A and
+``always small'' for problem~B.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[x=1.75cm, every node/.style={font=\footnotesize}]
+\foreach \y/\lab in {0/2020,1/2021,2/2022,3/2023,4/2024,5/2025,6/2026} \node at (\y+0.5,0.85) {\lab};
+\fill[brand!25] (0,0) rectangle (4,0.5);   \node at (2,0.25) {\textbf{fit} -- learn while tuning};
+\fill[accent!35] (4,0) rectangle (5,0.5);  \node at (4.5,0.25) {\textbf{val}};
+\fill[brand!45] (0,-0.75) rectangle (5,-0.25); \node at (2.5,-0.5) {\textbf{train} -- learn again with the chosen setting};
+\fill[green!30!gray!40] (5,-0.75) rectangle (6.75,-0.25); \node at (5.875,-0.5) {\textbf{test}};
+\draw[thick,-{Stealth}] (0,-1.05) -- (7,-1.05) node[right] {time};
+\node[align=left, anchor=west, font=\scriptsize] at (0,-1.45) {1. choose settings on 2024 \quad 2. refit on 2020--2024 \quad 3. score once on 2025--2026};
+\end{tikzpicture}
+\caption{Time-ordered protocol used by every supervised experiment in this section}\label{fig:split}
+\end{figure}
+
+\subsubsection{Implementation}
+Each algorithm has its own script in the folder \path{algorithms/} (\cref{tab:lessons}). Every script is divided
+into small numbered steps, so it can be run as a whole or cell by cell. All steps print their results and save
+their charts to \path{algorithms/outputs/}. The final test scores and the key numbers quoted below are written
+to JSON files, and \path{algorithms/export_to_report.py} turns them into the tables and \LaTeX{} macros of this
+section. As in the rest of the report, no number here is typed by hand.
+
+\begin{table}[htbp]\centering\small
+\caption{Algorithm experiments and what each one demonstrates}\label{tab:lessons}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+\textbf{Script} & \textbf{Problem} & \textbf{Concepts demonstrated} \\ \midrule
+\texttt{01\_linear\_regression} & A & learned equation, standardised coefficients, residual analysis \\
+\texttt{02\_logistic\_regression} & B & sigmoid, odds ratios, class weights, threshold choice, ROC curve \\
+\texttt{03\_decision\_tree} & B (+A) & readable rules, Gini impurity, depth and overfitting \\
+\texttt{04\_random\_forest} & A (+B) & bagging, number of trees, out-of-bag score, permutation importance \\
+\texttt{05\_gradient\_boosting} & A (+B) & boosting by hand, learning rate versus number of trees \\
+\texttt{06\_xgboost} & B (+A) & regularisation, early stopping, rare-class weighting, gain importance \\
+\texttt{07\_svm} & B (+A) & scaling, linear and RBF kernels, the $C$ and $\gamma$ settings, SVR \\
+\texttt{08\_knn} & B (+A) & distance, scaling, choice of $k$, inspecting neighbours \\
+\texttt{09\_kmeans\_clustering} & C & Lloyd's algorithm by hand, elbow and silhouette, naming clusters \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+% ============================================================================
+\subsection{Linear regression}
+\paragraph{Principle.} Linear regression models the target as a weighted sum of the inputs,
+$\hat y = \beta_0 + \beta_1 x_1 + \dots + \beta_p x_p$. Ordinary least squares chooses the weights that minimise
+the sum of squared errors, which has the closed-form solution
+\[
+  \hat{\boldsymbol\beta} = (\mathbf X^\top \mathbf X)^{-1}\mathbf X^\top \mathbf y .
+\]
+Each coefficient is the expected change in the target for a one-unit change in its input, holding the others
+constant \citep{montgomery2021, james2021}.
+
+\paragraph{Experiment.} With last month's units as the only input, the learned line is
+$\widehat{\text{units}} = \LinBzero + \LinBone \times \text{units}_{t-1}$ (\cref{fig:alglin}, left). The slope
+below one is \emph{regression to the mean}: an unusually strong month tends to be followed by a weaker one, and
+vice versa. This single-input model already reduces the test MAE from \AlgRegBaseMAE (baseline) to \LinOneMAE
+units. With all nine standardised inputs, the test MAE falls to \AlgLinMAE units ($R^2 = \AlgLinRtwo$). The
+largest standardised coefficient belongs to \texttt{\LinTopFeature} (\LinTopCoef units per standard
+deviation): the recent level of demand is the strongest predictor. The residual plot (\cref{fig:alglin}, right)
+is centred on zero with no strong pattern, so the linear form is adequate for this problem.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.43\linewidth]{algo/01_simple_line}\hfill
+\includegraphics[width=.55\linewidth]{algo/01_residuals}
+\caption{Linear regression: the learned line with one input (left); predicted versus actual units and the error distribution on the test period (right)}\label{fig:alglin}
+\end{figure}
+
+\paragraph{Assessment.} Linear regression is fast, fully explainable and, with good lag features, nearly as
+accurate as the ensembles. Its weaknesses are that it cannot represent interactions or thresholds unless they
+are added as features, and that correlated inputs (here the three history features) make individual
+coefficients unstable even when predictions are good.
+
+% ============================================================================
+\subsection{Logistic regression}
+\paragraph{Principle.} Logistic regression passes the linear score $z = \beta_0 + \boldsymbol\beta^\top\mathbf x$
+through the sigmoid function to obtain a probability,
+\[
+  P(y=1 \mid \mathbf x) = \sigma(z) = \frac{1}{1+e^{-z}}, \qquad
+  \log\frac{P}{1-P} = \beta_0 + \boldsymbol\beta^\top\mathbf x ,
+\]
+and the weights maximise the log-likelihood of the observed classes \citep{hosmer2013}. The exponentiated
+coefficient $e^{\beta_j}$ is an \emph{odds ratio}: the factor by which the odds of a large order are multiplied
+when $x_j$ increases by one unit.
+
+\paragraph{Experiment.} With only the smoothed channel~$\times$~region order size as input, the coefficient is
+\LogBone. The predicted probability of a large order rises from \LogPfive in a channel and region whose orders
+average 5 units, to \LogPten at 10 units and \LogPfifteen at 15 units. With all 18 standardised inputs and
+\emph{balanced class weights} (errors on the rare class count more), the same feature dominates with an odds
+ratio of \LogTopOR per standard deviation. All other odds ratios are close to one. The decision threshold was
+chosen by maximising F1 on 2024, which selected \LogThreshold. On the test period the model reaches ROC-AUC
+\AlgLogAUC, recall \AlgLogRecall and precision \AlgLogPrec. The baseline that always answers ``small'' is
+\AlgClsBaseAcc\% accurate but finds no large order at all. This shows why accuracy alone is misleading for
+imbalanced classes.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.36\linewidth]{algo/02_sigmoid}\hfill
+\includegraphics[width=.62\linewidth]{algo/02_confusion_roc}
+\caption{Logistic regression: the sigmoid link (left); confusion matrix and ROC curve on the test period (right)}\label{fig:alglog}
+\end{figure}
+
+\paragraph{Assessment.} Logistic regression gives calibrated probabilities and explanations that managers can
+read directly (``this channel doubles the odds''). In this study it is also the most accurate classifier, which
+is strong evidence that the signal is essentially one main effect.
+
+% ============================================================================
+\subsection{Decision tree}
+\paragraph{Principle.} A decision tree splits the data recursively with yes/no questions on single features. At
+each node, CART chooses the question that most reduces impurity \citep{breiman1984}. For classification the
+Gini impurity of a node with class shares $p_k$ is $G = 1 - \sum_k p_k^2$, which is zero for a pure node. For
+regression the variance (squared error) is used, and each leaf predicts the mean of its training rows.
+
+\paragraph{Experiment.} A tree of depth two already reads like a business rule: \emph{if the channel and region
+usually place orders above about six units, expect a large order}. The depth was tuned on 2024
+(\cref{fig:algdt}, left). As the tree deepens, its ROC-AUC on the data it learned from keeps rising (to
+\DTFitAUCDeep at depth 15), while the score on unseen 2024 orders peaks early and then falls (\DTValAUCDeep at
+depth 15). This is the textbook picture of \emph{overfitting}. The best depth was \DTBestDepth, with a test
+ROC-AUC of \AlgDTAUC. In the final tree \texttt{channel\_region\_avg\_qty} accounts for \DTTopShare of the
+total impurity reduction. As a regressor for problem~A, a depth-5 tree reaches an MAE of \AlgDTMAE units: better
+than the baseline, but the weakest of the supervised regressors.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.42\linewidth]{algo/03_depth_tuning}\hfill
+\includegraphics[width=.56\linewidth]{algo/03_tree}
+\caption{Decision tree: tuning the depth on 2024 (left); the top levels of the final tree (right)}\label{fig:algdt}
+\end{figure}
+
+\paragraph{Assessment.} Trees are the most explainable non-linear model and need no scaling, but a single tree has
+high variance: small changes in the data can produce a different tree. The two ensemble methods that follow
+are designed to remove this weakness.
+
+% ============================================================================
+\subsection{Random forest}
+\paragraph{Principle.} A random forest averages $B$ trees, each grown on a bootstrap sample of the rows and
+choosing every split from a random subset of the features \citep{breiman2001}. If single trees have variance
+$\sigma^2$ and pairwise correlation $\rho$, the variance of their average is
+\[
+  \operatorname{Var}\Bigl(\tfrac{1}{B}\textstyle\sum_{b=1}^{B} T_b\Bigr) = \rho\,\sigma^2 + \frac{1-\rho}{B}\,\sigma^2 ,
+\]
+so adding trees removes the second term, and random feature selection reduces $\rho$ \citep{hastie2009}.
+
+\paragraph{Experiment.} A single full-depth tree has a validation MAE of \RFOneTreeMAE units on 2024. A forest
+of one tree is similar (\RFValMAEone), but the error falls quickly as trees are added and levels off at about
+100 trees (\RFValMAEhundred; \cref{fig:algrf}). More trees never cause overfitting; they only cost time. Each
+tree leaves out about a third of the rows, and scoring each row with the trees that did not see it gives a free
+\emph{out-of-bag} estimate ($R^2 = \RFOOB$). On the test period the 300-tree forest reaches an MAE of
+\AlgRFMAE units ($R^2 = \AlgRFRtwo$). Permutation importance shows that shuffling
+\texttt{\RFTopFeature} increases the error by \RFTopPerm units, more than any other input. The individual trees
+also give a range for each forecast, which is useful for safety stock. As a classifier, the forest reaches
+ROC-AUC \AlgRFAUC.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.6\linewidth]{algo/04_n_trees}
+\caption{Random forest: validation error (2024) against the number of trees}\label{fig:algrf}
+\end{figure}
+
+% ============================================================================
+\subsection{Gradient boosting}
+\paragraph{Principle.} Boosting builds trees \emph{in sequence}. Starting from a constant $F_0$, each new tree
+$h_m$ is fitted to the negative gradient of the loss, which for squared error is simply the current residual,
+and a fraction $\nu$ (the learning rate) of it is added \citep{friedman2001}:
+\[
+  F_m(\mathbf x) = F_{m-1}(\mathbf x) + \nu\, h_m(\mathbf x), \qquad
+  h_m \approx \arg\min_h \textstyle\sum_i \bigl(y_i - F_{m-1}(\mathbf x_i) - h(\mathbf x_i)\bigr)^2 .
+\]
+
+\paragraph{Experiment.} The experiment first implements boosting by hand in six lines of code. Starting from the
+mean, the training MAE falls from \GBManualStart to \GBManualFive units after only five depth-3 trees. The
+library version was then tuned over the learning rate and the number of trees using staged predictions on 2024
+(\cref{fig:alggb}). A high learning rate reaches its best error quickly and then overfits. A low rate needs many
+more trees but degrades more slowly. The chosen setting was a learning rate of \GBRate with \GBTrees trees. The
+test MAE is \AlgGBMAE units ($R^2 = \AlgGBRtwo$), and the most important input is
+\texttt{\GBTopFeature}. Because the classifier version has no class-weight option, its decision threshold was
+lowered to the training share of large orders. It then reaches ROC-AUC \AlgGBAUC.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.65\linewidth]{algo/05_learning_rate}
+\caption{Gradient boosting: validation error (2024) against the number of trees for three learning rates}\label{fig:alggb}
+\end{figure}
+
+% ============================================================================
+\subsection{XGBoost}
+\paragraph{Principle.} XGBoost is a regularised, second-order implementation of gradient boosting
+\citep{chen2016}. At step $m$ it minimises
+\[
+  \mathcal L^{(m)} = \sum_i \ell\bigl(y_i, \hat y_i^{(m-1)} + f_m(\mathbf x_i)\bigr) + \Omega(f_m), \qquad
+  \Omega(f) = \gamma T + \tfrac12 \lambda \lVert \mathbf w\rVert^2 ,
+\]
+where $T$ is the number of leaves and $\mathbf w$ the leaf values. The penalty $\Omega$ discourages complex trees.
+Row and column sub-sampling add randomness, as in a random forest, and \emph{early stopping} ends training as
+soon as the validation score stops improving.
+
+\paragraph{Experiment.} For problem B, the weight of the rare class was set to the ratio of small to large orders
+(\XGBPosWeight). With early stopping monitored on 2024, the validation ROC-AUC peaked after only \XGBBestN trees
+(\XGBValAUC; \cref{fig:algxgb}). The training curve kept rising after that point, the familiar sign of
+memorisation. Refitted with that many trees, XGBoost reaches a test ROC-AUC of \AlgXGBAUC and an F1 of
+\AlgXGBFone. Gain importance attributes \XGBTopGain of the model's gain to the channel~$\times$~region feature.
+For problem~A early stopping selected \XGBRegTrees trees, and the regressor reaches a test MAE of \AlgXGBMAE
+units ($R^2 = \AlgXGBRtwo$).
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.65\linewidth]{algo/06_early_stopping}
+\caption{XGBoost: ROC-AUC on the training and validation years as trees are added, with the early-stopping point}\label{fig:algxgb}
+\end{figure}
+
+% ============================================================================
+\subsection{Support vector machine}
+\paragraph{Principle.} A support vector machine finds the boundary with the widest margin between the classes.
+The soft-margin formulation allows some violations, controlled by $C$ \citep{cortes1995}:
+\[
+  \min_{\mathbf w, b, \boldsymbol\xi}\ \tfrac12 \lVert\mathbf w\rVert^2 + C\sum_i \xi_i
+  \quad\text{s.t.}\quad y_i(\mathbf w^\top\phi(\mathbf x_i) + b) \geq 1 - \xi_i,\ \ \xi_i \geq 0 .
+\]
+The kernel trick replaces inner products by a kernel such as the radial basis function
+$K(\mathbf x, \mathbf x') = \exp(-\gamma\lVert\mathbf x - \mathbf x'\rVert^2)$, which lets the boundary curve
+\citep{scholkopf2002}. Only the training points on or inside the margin, the \emph{support vectors}, define the
+solution. Support vector regression (SVR) applies the same idea with an $\varepsilon$-insensitive tube around the
+regression function.
+
+\paragraph{Experiment.} Because the SVM works with distances, feature scaling is essential. Without it, the
+validation ROC-AUC was \SVMRawAUC, barely better than guessing. With standardisation it was \SVMScaledAUC. A
+linear kernel (\SVMLinAUC) was slightly better than the default RBF kernel (\SVMRbfAUC). A small grid then
+selected $C = \SVMBestC$ and $\gamma = \SVMBestGamma$ (validation ROC-AUC \SVMBestValAUC;
+\cref{fig:algsvm}). The small $C$ means a wide, smooth margin works best. The final model, trained on
+\SVMTrainRows orders because training time grows roughly with the square of the number of rows, reaches a
+test ROC-AUC of \AlgSVMAUC. It keeps \SVMNSupport of its training rows as support vectors, a sign that the two
+classes overlap heavily. For problem~A the \SVRBest is better and reaches an MAE of \AlgSVMMAE units
+($R^2 = \AlgSVMRtwo$).
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.6\linewidth]{algo/07_svm_tuning}
+\caption{Support vector machine: validation ROC-AUC (2024) for combinations of $C$ and $\gamma$}\label{fig:algsvm}
+\end{figure}
+
+% ============================================================================
+\subsection{\texorpdfstring{$k$}{k}-nearest neighbours}
+\paragraph{Principle.} KNN stores the training data and predicts for a new case from its $k$ closest neighbours
+$N_k(\mathbf x)$ in feature space: by majority vote for classification and by the (optionally distance-weighted)
+mean for regression \citep{cover1967}:
+\[
+  \hat y(\mathbf x) = \frac{1}{k}\sum_{i \in N_k(\mathbf x)} y_i .
+\]
+There is no training step in the usual sense, but every prediction requires distances to all stored rows.
+
+\paragraph{Experiment.} Scaling matters as much as for the SVM. Without it, the validation ROC-AUC was \KNNRawAUC,
+because the distance was almost entirely determined by \texttt{units\_lag\_1}, whose values are in the
+thousands. With standardisation it rose to \KNNScaledAUC. The choice of $k$ shows the bias--variance trade-off
+directly (\cref{fig:algknn}). With $k=1$ the model is perfect on its own data (ROC-AUC \KNNOneFitAUC) but weak on
+2024 (\KNNOneValAUC). The validation score kept improving up to the largest value tried, $k=\KNNBestK$: when the
+outcome of a single order is mostly noise, averaging over many neighbours helps. The test ROC-AUC is
+\AlgKNNAUC. Inspecting the neighbours of a single order shows the explanation KNN offers: ``orders like this one
+were large in \emph{x} out of $k$ cases''. For problem~A, $k=\KNNRegK$ distance-weighted neighbours give an MAE
+of \AlgKNNMAE units.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.6\linewidth]{algo/08_choose_k}
+\caption{$k$-nearest neighbours: ROC-AUC on the learned data and on 2024 for different $k$}\label{fig:algknn}
+\end{figure}
+
+% ============================================================================
+\subsection{\texorpdfstring{$K$}{K}-means clustering}
+\paragraph{Principle.} $K$-means partitions $n$ observations into $K$ clusters with centres $\boldsymbol\mu_j$ by
+minimising the within-cluster sum of squares \citep{macqueen1967}:
+\[
+  \min_{C_1,\dots,C_K} \sum_{j=1}^{K}\ \sum_{\mathbf x_i \in C_j} \lVert \mathbf x_i - \boldsymbol\mu_j\rVert^2 .
+\]
+Lloyd's algorithm alternates two steps until nothing changes: assign each point to its nearest centre, then move
+each centre to the mean of its points. Because the result depends on the starting centres, the algorithm is
+restarted several times and the best solution is kept.
+
+\paragraph{Experiment.} The experiment first runs Lloyd's algorithm by hand for $K=3$. It converges in \KMIters
+iterations, and the within-cluster sum of squares falls at every step. $K$ was then chosen with the elbow plot
+and the silhouette coefficient \citep{rousseeuw1987, kaufman1990}. The silhouette selected $K=\KMBestK$ with a
+value of \KMSil, which indicates clear structure. The small cluster contains the \KMSmall bread and breakfast
+products, which sell fewer units per month, in larger orders and with a higher share of large orders than the
+cakes. For $K \geq 3$ the silhouette drops to about \KMSilFour, so the cakes do not form well-separated
+sub-groups on these six features. This complements \cref{ch:models}, where a different feature set (revenue,
+growth, seasonality and volatility) and a practical range of three to five segments produced a more detailed,
+strategy-oriented segmentation. The fitted model can place a new product into a cluster from its expected
+profile, so planners can treat it like similar existing products.
+
+\begin{figure}[htbp]\centering
+\includegraphics[width=.55\linewidth]{algo/09_choose_k}\hfill
+\includegraphics[width=.43\linewidth]{algo/09_clusters}
+\caption{$K$-means: elbow and silhouette for $K = 2,\dots,8$ (left); products and cluster centres on the first two principal components (right)}\label{fig:algkm}
+\end{figure}
+
+% ============================================================================
+\subsection{Comparative results}
+\Cref{tab:algoreg,tab:algocls} bring the supervised experiments together.
+
+\input{tables/algo_regression.tex}
+\input{tables/algo_classification.tex}
+
+For problem A every algorithm beats the baseline. The best, \AlgRegBest, reduces the MAE from \AlgRegBaseMAE to
+\AlgRegBestMAE units, an improvement of \AlgRegGain\%. The spread between the top models is small, however, and
+linear regression (\AlgLinMAE) is within a few units of the ensembles. Only the single decision tree
+(\AlgDTMAE) clearly lags behind. For problem B every algorithm lies in a narrow band of ROC-AUC, from
+\AlgClsWorstAUC (\AlgClsWorst) to \AlgClsBestAUC (\AlgClsBest). The algorithms differ mainly in where they place
+the trade-off between precision and recall, which is a business choice made through the threshold, not a
+difference in predictive power.
+
+These results agree with \cref{ch:models}, which used a richer feature set and a different tuning procedure. In
+both studies, (i) all machine-learning models beat the naive baselines, (ii) the leading regressors are
+separated by only a few percent, so their exact ranking is not stable, (iii) linear models are competitive with
+complex ensembles once good lag features exist, and (iv) large-order prediction is capped at a ROC-AUC of about
+0.7 by the information in the data. Reaching the same conclusions with two independent implementations is a
+form of triangulation that increases confidence in the findings \citep{shadish2002, kuhn2019}.
+
+\begin{table}[htbp]\centering\small
+\caption{Practical profile of the nine algorithms, based on the experiments}\label{tab:algoprofile}
+\begin{tabularx}{\linewidth}{@{}lcccc>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Algorithm} & \textbf{Type} & \textbf{Scaling} & \textbf{Explain.} & \textbf{Cost} & \textbf{Best use in this project} \\ \midrule
+Linear regression & R & yes\textsuperscript{a} & high & very low & transparent demand baseline \\
+Logistic regression & C & yes & high & very low & large-order probability, odds ratios \\
+Decision tree & R/C & no & high & low & business rules, explaining drivers \\
+Random forest & R/C & no & medium & medium & robust forecasts with ranges \\
+Gradient boosting & R/C & no & medium & medium & accurate forecasts (tuned) \\
+XGBoost & R/C & no & medium & low & accurate forecasts, early stopping \\
+SVM / SVR & R/C & yes & low & high & linear SVR for demand; small data \\
+KNN & R/C & yes & medium & high\textsuperscript{b} & case-based explanations \\
+$K$-means & U & yes & high & low & product and market segments \\ \bottomrule
+\end{tabularx}
+\par\smallskip\footnotesize R = regression, C = classification, U = unsupervised; Explain.\ = explainability.
+\textsuperscript{a}Not needed for the fit itself, but needed to compare coefficients.
+\textsuperscript{b}At prediction time, because every prediction searches all stored rows.
+\end{table}
+
+\subsection{Lessons for practitioners}
+\begin{enumerate}
+  \item \textbf{Start with a baseline and a simple model.} A naive rule and a linear model set the bar. Here they
+        were within a few percent of the best ensemble, at a fraction of the cost and with full explainability.
+  \item \textbf{Tune on validation data, never on the test.} Every setting (depth, number of trees, learning
+        rate, $C$, $\gamma$, $k$, threshold) was chosen on 2024. The test score is therefore an honest estimate.
+  \item \textbf{Scale for distance-based methods.} SVM and KNN dropped to near-random performance without
+        scaling. Tree methods do not need it.
+  \item \textbf{Watch the gap between training and validation.} Deep trees, $k=1$ neighbours and boosting without
+        early stopping all fit the training data almost perfectly and generalise worse.
+  \item \textbf{Choose metrics that match the business.} With imbalanced classes, accuracy rewards a useless
+        model. ROC-AUC, recall, precision and a deliberately chosen threshold are more meaningful.
+  \item \textbf{When all algorithms agree, the limit is the data.} Seven classifiers with the same ROC-AUC show
+        that better large-order prediction needs new information, such as customer history, not a different
+        algorithm \citep{kelleher2020, geron2022}.
+\end{enumerate}
+\section{Decision-support insights}\label{sec:insights}
+The final layer turns model outputs into recommendations. The module \texttt{insights.py} reads the metric
+files and fills sentence templates with the current results. Every insight therefore stays up to date when new
+data are processed, and none is typed by hand. The insights generated for this dataset are:
+
+\input{generated/insights.tex}
+
+Each insight is tagged by area and by the management question it answers. Each is paired with a concrete
+action, so the dashboard serves as a \emph{decision-support system}, not merely a reporting tool.
+
+\section{System evaluation}
+The proposal asked for the system to be evaluated on predictive performance, usability, analytical usefulness,
+visualisation quality and processing efficiency. \Cref{tab:syseval} summarises the evidence.
+
+\begin{table}[htbp]\centering\small
+\caption{Evaluation of the framework against the criteria in the proposal}\label{tab:syseval}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Criterion} & \textbf{Evidence} \\ \midrule
+Predictive performance & All ML forecasters beat naive baselines; best WAPE \BestRegWAPE\%; company-level MAPE \HWMAPE\%; classification ROC-AUC \ClsAUC (\cref{ch:models}); confirmed independently by the algorithm study (\cref{ch:algorithms}) \\
+Analytical usefulness & Insights on growth quality, discount ineffectiveness, seasonality, concentration risk, segments and anomalies, each with a recommended action \\
+Usability & One set of global filters; nine task-oriented pages with bookmarkable addresses; plain-language captions; downloadable forecasts; runs in any browser without installation \\
+Visualisation quality & Principles of Few, Tufte and Knaflic: KPI cards, sorted bars, heat maps, intervals on forecasts, no 3-D or decorative charts, consistent palette \\
+Processing efficiency & Data validation and cleaning of \NRows rows in under 20 seconds; warehouse load in \WarehouseSeconds s; full pipeline including model tuning in about 20 minutes on a standard laptop; dashboard data about 2 MB \\
+Availability & Publicly deployed on free HTTPS platforms with automatic redeployment on every push (\cref{sec:deployment}) \\
+Reproducibility & One command regenerates all data, models, figures, tables and numbers; fixed random seed; automated tests; version history on GitHub \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+A formal usability study with managers was beyond the time available. It is recommended as future work: a short
+task-based test with a System Usability Scale questionnaire \citep{brooke1996} would complete the evaluation.
+
+\section{Hypothesis testing results}\label{sec:hyptest}
+\Cref{tab:hypdecision} brings together the decisions on the seven hypotheses of \cref{sec:hypotheses}, using
+the tests defined in \cref{tab:hypmap}. Four of the seven alternative hypotheses (H1, H4, H6 and H7) are
+supported and three (H2, H3 and H5) are not. The unsupported hypotheses are themselves among the most useful
+findings for management, because they contradict three common assumptions: that customer type drives order
+size, that discounts drive volume, and that higher prices reduce demand.
+
+\begin{table}[htbp]\centering\small
+\caption{Decisions on the research hypotheses}\label{tab:hypdecision}
+\begin{tabularx}{\linewidth}{@{}lXll@{}}
+\toprule
+\textbf{Hyp.} & \textbf{Evidence} & \textbf{Effect} & \textbf{Decision} \\ \midrule
+H1 & Order size differs by channel; $p<0.001$ & $\varepsilon^2=\EpsChannel$ & Supported \\
+H2 & No difference by customer type; $p=\PCustType$ & $\varepsilon^2\approx 0$ & Not supported \\
+H3 & Discount and order size uncorrelated; $\rho=\RhoDisc$, $p=\PDisc$ & $\rho^2\approx 0$ & Not supported \\
+H4 & Detrended daily sales differ by month; $H=\KWMonthH$, $p<0.001$ & large & Supported \\
+H5 & Elasticity \Elasticity, 95\% CI [\ElasticityLo, \ElasticityHi], $p=\ElasticityP$ & near zero & Not supported\textsuperscript{a} \\
+H6 & ML error \GainVsSNaive\% below seasonal naive (WAPE \BestRegWAPE\% vs \SNaiveWAPE\%) & \GainVsSNaive\% & Supported \\
+H7 & Large orders associated with channel; $p<0.001$ & $V=\CramerV$ & Supported \\ \bottomrule
+\end{tabularx}
+\par\smallskip\footnotesize \textsuperscript{a}Demand is price-\emph{inelastic} in the observed price range:
+the elasticity is not distinguishable from zero.
+\end{table}
+
+The lack of support for H5 is consistent with the price-led growth seen in \cref{ch:eda}: prices rose by about
+\CAGRPrice\% a year without a measurable loss of volume.
+
+\section{Discussion: answers to the research questions}\label{ch:discussion}
+
+\paragraph{RQ1: How can data analytics improve business decision-making?}
+The framework shows improvements at all three levels of analytics. At the \emph{descriptive} level, it replaces
+manual spreadsheet consolidation with validated, reconciled KPIs that update with one command. At the
+\emph{diagnostic} level, it reveals relationships that simple reports would miss. Growth is mostly price- and
+mix-led. Discounts are not associated with larger orders. Order size depends on the channel, not the customer
+type. At the \emph{predictive} level, it provides product-level forecasts with quantified uncertainty. Each of
+these changes a concrete decision: discount budgets, sales-force allocation, production plans and logistics
+capacity.
+
+\paragraph{RQ2: Which preprocessing techniques are most effective?}
+Three techniques proved most valuable. The first is \emph{deriving} missing values from accounting identities,
+which gives exact restoration and should always be tried before statistical imputation. The second is
+\emph{robust, group-wise outlier detection} (a per-product IQR on the log scale), which respects skewed
+distributions and different product scales. Combined with the policy of flagging rather than deleting unusual
+values, it keeps genuine bulk orders. The third is \emph{leakage-safe feature engineering}, in which history
+features are shifted before rolling and every learned parameter is fitted on training data only. Robust
+methods were preferable to normal-theory methods throughout, because the business variables are highly skewed.
+
+\paragraph{RQ3: Which algorithm performs best?}
+No single algorithm is best for every problem, and the margins between good models are small. For one-month-ahead
+product demand, \BestReg was most accurate. \BestRec was most robust in the multi-step setting. At the company
+level, the classical Holt--Winters model beat all machine-learning alternatives. For classification, logistic
+regression matched the tree ensembles. This pattern agrees with \citet{makridakis2018}. Good features, a sound
+validation design and benchmarking matter more than the choice of algorithm. A combined approach, with
+statistical totals reconciled to machine-learned product mixes, is the most useful in practice. The
+algorithm-level study in \cref{ch:algorithms} reached the same conclusion with independent code and a simpler
+feature set. There, \AlgRegBest had the lowest monthly error (MAE \AlgRegBestMAE units), but linear regression
+(\AlgLinMAE) and the random forest (\AlgRFMAE) were within a few units of it, and the seven classifiers spanned
+only \AlgClsWorstAUC to \AlgClsBestAUC in ROC-AUC. Because the exact ranking of the leading models changes with
+the features and tuning, the choice among them should favour simplicity and explainability.
+
+\paragraph{RQ4: What patterns exist in the historical data?}
+Strong year-end seasonality peaks in \PeakMonth. Growth is steady but price-driven, and demand is
+price-inelastic. Revenue is geographically concentrated in Dhaka and Chattogram, and the portfolio is
+concentrated in about ten products. Order size differs strongly by channel. Discounts have no detectable volume
+effect, and weekday effects are absent. Segmentation adds a portfolio view (premium and gift packs, core family
+packs, value single-serves and niche lines) and a market view (core retail, bulk distribution, online and
+regional, emerging high-growth).
+
+\paragraph{RQ5: How accurately can the future be predicted?}
+Monthly demand per product can be forecast with a weighted error of about \BestRegWAPE\% one month ahead and
+about \BestRecWAPE\% up to 21 months ahead. Company-level monthly units can be forecast with an error of about
+\HWMAPE\%. Whether an individual order will be large is only moderately predictable (ROC-AUC \ClsAUC). The
+limit lies in the information available, not in the models.
+
+\paragraph{RQ6: How should results be presented to managers?}
+Through an interactive dashboard organised around the management questions. It should have global filters,
+KPI cards and simple, sorted charts; it should always show uncertainty for forecasts; and it should state
+insights in plain language, each with an action. Publishing the dashboard and a summary website on free
+platforms removes cost and installation barriers. In this project both are live (\cref{tab:links}), every page
+has its own shareable address, and continuous deployment means that managers always see the latest results
+without any action on their part.
+
+\paragraph{RQ7: How much does predictive analytics add to historical reporting?}
+A historical report can at best repeat last year's pattern, which is the seasonal-naive rule. The
+machine-learning forecast reduces its error by \GainVsSNaive\%. Put differently, a planner using last year's
+figures would make errors about \SNaiveWAPE\% of volume in each product-month, compared with \BestRegWAPE\% for
+the framework. Prediction intervals add information that historical reporting cannot provide at all: how much
+safety stock is needed.
+
+\section{Comparison with the literature}
+\Cref{tab:litcompare} sets the main findings against the literature reviewed in \cref{ch:literature}. Most
+findings confirm published evidence; two of them add context-specific knowledge about the Bangladeshi
+packaged-cake market.
+
+\begin{table}[htbp]\centering\small
+\caption{Findings of this study compared with the literature}\label{tab:litcompare}
+\begin{tabularx}{\linewidth}{@{}XXl@{}}
+\toprule
+\textbf{Finding of this study} & \textbf{Position in the literature} & \textbf{Relation} \\ \midrule
+Holt--Winters beat all ML models for company-level monthly units & Simple statistical methods are hard to beat on aggregate series \citep{makridakis2018, hyndman2021} & Confirms \\
+ML models beat naive baselines for product-level demand, with small margins between them & Feature design and validation matter more than the algorithm \citep{kuhn2019, kuhn2013} & Confirms \\
+Random validation would have overstated accuracy & Time-ordered validation is required for temporal data \citep{bergmeir2012, kaufman2012} & Confirms \\
+Logistic regression matched tree ensembles for large orders & Linear models remain competitive when signal is limited \citep{hastie2009, james2021} & Confirms \\
+Several metrics were needed to compare classifiers under imbalance & Single metrics hide classifier differences \citep{japkowicz2011} & Confirms \\
+Segments are interpretable but only moderately separated (silhouette $\approx$ \ProdSil) & Real market data rarely form well-separated clusters \citep{kaufman1990, kotler2016} & Confirms \\
+Discounts have no measurable effect on order size; demand is price-inelastic & Context-specific; requires experimental confirmation \citep{wooldridge2020} & Extends \\
+Order size depends on channel, not customer type & Context-specific evidence for the Bangladeshi FMCG market & Extends \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Chapter summary}
+The exploratory analysis showed price-led growth, strong year-end seasonality, high geographical and portfolio
+concentration, and no measurable effect of discounts. The production models forecast product demand with a
+WAPE of \BestRegWAPE\%, \GainVsSNaive\% better than the seasonal-naive rule, while Holt--Winters forecast
+company totals with a MAPE of \HWMAPE\%. Large orders were moderately predictable, and segmentation and anomaly
+detection added portfolio, market and control perspectives. The algorithm-level study confirmed these results
+with independent code. Four of the seven hypotheses were supported, all seven research questions were answered,
+and the findings were consistent with, or extended, the literature. \Cref{ch:conclusion} draws the conclusions.

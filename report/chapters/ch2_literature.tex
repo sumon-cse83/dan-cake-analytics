@@ -165,6 +165,56 @@ language and published free of charge. Examples are the Python libraries pandas 
 scikit-learn \citep{pedregosa2011}, Plotly and Streamlit, whose use for data science is described by
 \citet{vanderplas2016}.
 
+\section{Engineering and evaluating analytical systems}
+Analytical models create value only when they are embedded in dependable software. \citet{sculley2015} argue
+that in real machine-learning systems the model code is a small fraction of the whole; most of the effort and
+risk lie in data dependencies, configuration, glue code and feedback loops, which they call \emph{hidden
+technical debt}. Their recommendations (explicit data contracts, a single configuration, reproducible pipelines
+and monitoring) shaped the architecture in \cref{ch:system}. Classical software-engineering texts make the same
+point from another angle. Requirements should be separated into functional and non-functional (quality)
+requirements and traced to tests \citep{sommerville2016}, and a modular design with low coupling and high
+cohesion makes a system easier to test and to change \citep{pressman2020}.
+
+Evaluation of learning algorithms has its own literature. \citet{kohavi1995} showed that the choice of
+resampling scheme strongly affects accuracy estimates and model selection, and \citet{japkowicz2011} warn that
+a single summary metric can hide important differences between classifiers, especially under class imbalance.
+Both arguments support the use of several metrics, an untouched test period and explicit baselines in this
+project. Finally, an artefact meant for managers should also be judged on usability. The System Usability Scale
+\citep{brooke1996} is a short, widely used questionnaire for this purpose and is proposed for the future
+evaluation of the dashboard.
+
+\section{Conceptual framework of the study}
+The reviewed literature can be combined into a single conceptual framework (\cref{fig:conceptual}). Raw
+transactional data become \emph{trusted data} through validation and cleaning \citep{garcia2015, little2019};
+trusted data become \emph{information} through warehousing and descriptive statistics \citep{kimball2013}; and
+information becomes \emph{knowledge} through predictive models whose accuracy is measured against benchmarks
+\citep{hyndman2021, hyndman2006}. Knowledge supports a \emph{decision} only when it is explained and
+presented in the vocabulary of the decision maker \citep{few2013, molnar2022}. The framework also contains a
+feedback loop: the outcomes of decisions become new data, so the pipeline must be repeatable rather than a
+one-off analysis. Each layer of the system in \cref{ch:system} implements one stage of this framework, and the
+research questions of \cref{ch:intro} test whether the stages deliver what the literature promises.
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[node distance=5mm and 5mm, every node/.style={font=\footnotesize},
+  box/.style={draw, rounded corners, minimum width=2.25cm, minimum height=13mm, align=center, fill=gray!8},
+  lab/.style={font=\scriptsize\itshape, align=center},
+  arr/.style={-{Stealth[length=2mm]}, thick}]
+\node[box] (a) {Raw\\transaction\\data};
+\node[box, right=of a] (b) {Trusted\\data};
+\node[box, right=of b] (c) {Information};
+\node[box, right=of c] (d) {Predictive\\knowledge};
+\node[box, right=of d, fill=gray!20] (e) {Business\\decision};
+\draw[arr] (a) -- (b); \draw[arr] (b) -- (c); \draw[arr] (c) -- (d); \draw[arr] (d) -- (e);
+\node[lab, below=2mm of a] {source\\systems};
+\node[lab, below=2mm of b] {validation,\\cleaning};
+\node[lab, below=2mm of c] {warehouse,\\EDA, tests};
+\node[lab, below=2mm of d] {ML models,\\benchmarks,\\explanation};
+\node[lab, below=2mm of e] {dashboard,\\insights};
+\draw[arr, dashed] (e.north) to[bend right=18] node[above, font=\scriptsize]{outcomes generate new data (feedback)} (a.north);
+\end{tikzpicture}
+\caption{Conceptual framework: from raw data to business decisions}\label{fig:conceptual}
+\end{figure}
+
 \section{Research gap}
 The literature offers mature techniques for each component: data cleaning, warehousing, forecasting,
 classification, clustering, anomaly detection and dashboards. Studies and teaching materials, however, usually
@@ -197,7 +247,7 @@ literature.
 \end{table}
 
 \section{Core textbooks}\label{sec:books}
-Alongside the research papers, the project rests on a body of textbooks. \Cref{tab:books} lists the 34 books
+Alongside the research papers, the project rests on a body of textbooks. \Cref{tab:books} lists the 44 books
 consulted, grouped by subject, with the part of this work that each one informed. They range from the
 foundations of statistical learning and forecasting to the practical engineering of data systems and the
 communication of results to managers.
@@ -254,5 +304,17 @@ communication of results to managers.
 32 & \citet{few2013}, \emph{Information Dashboard Design} & dashboard design (\cref{ch:dashboard}) \\
 33 & \citet{tufte2001}, \emph{The Visual Display of Quantitative Information} & data-ink ratio, honest charts \\
 34 & \citet{knaflic2015}, \emph{Storytelling with Data} & presenting insights to managers \\
+\multicolumn{3}{@{}l}{\emph{Research methods, statistics and evaluation}} \\
+35 & \citet{saunders2019}, \emph{Research Methods for Business Students} & research philosophy, approach and design (\cref{ch:method}) \\
+36 & \citet{creswell2018}, \emph{Research Design} & quantitative research design \\
+37 & \citet{field2018}, \emph{Discovering Statistics} & non-parametric tests and assumptions \\
+38 & \citet{cohen1988}, \emph{Statistical Power Analysis for the Behavioral Sciences} & effect-size interpretation \\
+39 & \citet{little2019}, \emph{Statistical Analysis with Missing Data} & missingness mechanisms (MCAR, MAR, MNAR) \\
+40 & \citet{japkowicz2011}, \emph{Evaluating Learning Algorithms} & classifier evaluation and comparison \\
+41 & \citet{shadish2002}, \emph{Experimental and Quasi-Experimental Designs} & validity of conclusions \\
+42 & \citet{wohlin2012}, \emph{Experimentation in Software Engineering} & threats to validity of computational studies \\
+\multicolumn{3}{@{}l}{\emph{Software engineering}} \\
+43 & \citet{sommerville2016}, \emph{Software Engineering} & requirements and testing (\cref{ch:system}) \\
+44 & \citet{pressman2020}, \emph{Software Engineering: A Practitioner's Approach} & modular design and quality assurance \\
 \end{longtable}
 \endgroup

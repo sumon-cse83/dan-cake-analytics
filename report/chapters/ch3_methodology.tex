@@ -1,0 +1,354 @@
+\chapter{Research Methodology}\label{ch:method}
+
+This chapter explains how the study was carried out and why each methodological choice was made. It moves
+from the research philosophy and design, through the definition of the analytical problems and the data, to
+the preprocessing, feature engineering, evaluation and statistical procedures. It closes with the tools used,
+the steps taken to make the results valid and reliable, and the ethical considerations.
+
+\section{Research approach}
+The study follows a \emph{design-science} and \emph{quantitative} approach. Its main output is an artefact, the
+analytics framework, which is built to solve a stated business problem and is then evaluated rigorously against
+explicit criteria. This matches the guidelines of \citet{hevner2004} for design-science research in information
+systems: the artefact must address a relevant problem, be evaluated rigorously, and be communicated to both
+technical and managerial audiences. The empirical analysis is quantitative and uses a large secondary dataset of sales
+transactions. The overall lifecycle follows CRISP-DM \citep{shearer2000} as refined into ten phases in the
+project proposal (\cref{fig:lifecycle}).
+
+\begin{figure}[htbp]\centering
+\begin{tikzpicture}[node distance=4mm and 4mm, every node/.style={font=\small},
+  box/.style={draw=brand, rounded corners, fill=brand!8, minimum width=3.3cm, minimum height=9mm, align=center},
+  arr/.style={-{Stealth[length=2mm]}, thick, brand}]
+\node[box] (p1) {1. Problem\\definition};
+\node[box, right=of p1] (p2) {2. Data\\collection};
+\node[box, right=of p2] (p3) {3. Data\\preparation};
+\node[box, right=of p3] (p4) {4. Exploratory\\analysis};
+\node[box, below=9mm of p4] (p5) {5. Feature\\engineering};
+\node[box, left=of p5] (p6) {6. Model\\development};
+\node[box, left=of p6] (p7) {7. Model\\evaluation};
+\node[box, left=of p7] (p8) {8. Dashboard\\development};
+\node[box, below=9mm of p8] (p9) {9. System\\evaluation};
+\node[box, right=of p9] (p10) {10. Documentation};
+\draw[arr] (p1)--(p2); \draw[arr] (p2)--(p3); \draw[arr] (p3)--(p4); \draw[arr] (p4)--(p5);
+\draw[arr] (p5)--(p6); \draw[arr] (p6)--(p7); \draw[arr] (p7)--(p8); \draw[arr] (p8)--(p9); \draw[arr] (p9)--(p10);
+\draw[arr, dashed, accent] (p7.north) to[bend left=20] node[above, font=\scriptsize]{iterate} (p3.south);
+\end{tikzpicture}
+\caption{Project lifecycle, adapted from CRISP-DM}\label{fig:lifecycle}
+\end{figure}
+
+\section{Research philosophy and design}
+\citet{saunders2019} describe research design as a set of layered choices, often drawn as a ``research
+onion'', that run from the underlying philosophy to the concrete techniques of data collection and analysis.
+\Cref{tab:onion} records the choice made at each layer and the reason for it.
+
+\begin{table}[htbp]\centering\small
+\caption{Research design choices, following the layers of \citet{saunders2019}}\label{tab:onion}
+\begin{tabularx}{\linewidth}{@{}p{3.1cm}p{3.4cm}X@{}}
+\toprule
+\textbf{Layer} & \textbf{Choice} & \textbf{Justification} \\ \midrule
+Philosophy & Positivism with a pragmatic orientation & Sales outcomes are measurable and the hypotheses can be tested objectively; the pragmatic orientation reflects the aim of building a useful artefact \\
+Approach to theory & Deductive & Hypotheses H1--H7 are derived from the literature and then tested on data \\
+Methodological choice & Mono-method quantitative & All evidence is numerical: transactions, metrics and test statistics \citep{creswell2018} \\
+Strategy & Design-science research with a single in-depth case & An artefact is designed, built and evaluated on one company's data \citep{hevner2004, peffers2007} \\
+Time horizon & Longitudinal & 81 months of transactions allow trends, seasonality and out-of-time testing \\
+Data collection & Secondary, archival & A transaction export; no human participants are involved \\
+Analysis & Descriptive, inferential and predictive & Descriptive statistics, non-parametric tests, econometric and machine-learning models \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+Within design science, the study follows the six activities of \citet{peffers2007}: problem identification
+(\cref{ch:intro}), definition of the objectives of a solution (\cref{ch:intro}), design and development
+(\cref{ch:system}), demonstration on the Dan Cake data (\cref{ch:results}), evaluation (\cref{ch:results}) and
+communication (this report, the website and the dashboard). The quantitative analysis inside the artefact
+follows the CRISP-DM lifecycle shown in \cref{fig:lifecycle}, so the two frameworks operate at different levels:
+design science governs the research as a whole, CRISP-DM the analytical work within it.
+
+\section{Problem definition}
+Four analytical problems were derived from the business questions:
+\begin{enumerate}
+  \item \textbf{Demand forecasting (regression).} Predict the number of units of each product sold in the
+        next month. This supports production and inventory planning.
+  \item \textbf{Large-order prediction (classification).} At the moment an order is entered, predict whether
+        it will be large (\(\geq 10\) units). This supports allocation of stock and delivery capacity.
+  \item \textbf{Segmentation (clustering).} Group products and market cells (region $\times$ channel $\times$
+        customer type) with similar behaviour, to support portfolio and sales-force strategy.
+  \item \textbf{Anomaly detection.} Detect unusual trading days and suspicious transactions. This supports
+        monitoring and data-quality control.
+\end{enumerate}
+
+\section{Data}
+The dataset comprises \NRows transactions with \NCols attributes, recorded between \DateMin and \DateMax. Each
+record holds an identifier and date; the product (identifier, name, category, pack size, launch year); price
+information (printed maximum retail price, list price, market price, discount percentage and unit selling
+price); the quantity; the gross, discount and net sales values in Bangladeshi Taka (BDT); and the region,
+channel and customer type. \Cref{tab:dictionary} gives the full data dictionary. The
+data contain no personal identifiers.
+
+\subsection{Dataset profile and validation}
+\Cref{tab:dqsummary} summarises the dataset and the results of the validation layer. Each transaction belongs to
+one of \NProducts products in 13 categories. These are sold across \NRegions regions through \NChannels
+channels (General Trade, Modern Trade, Distributor, E-commerce) to \NCustTypes customer types (Retailer, Super
+Shop, Distributor, Corporate, Online Customer). Five products were launched after 2020: Lachcha Semai, two
+breads, a croissant and a cappuccino muffin gift pack.
+
+\begin{table}[htbp]\centering\small
+\caption{Dataset profile and data-quality validation results}\label{tab:dqsummary}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Check} & \textbf{Result} \\ \midrule
+Rows $\times$ columns & \NRows $\times$ \NCols \\
+Period covered & \DateMin -- \DateMax \\
+Products / regions / channels / customer types & \NProducts / \NRegions / \NChannels / \NCustTypes \\
+Missing cells (incl.\ hidden placeholders such as ``NA'', ``-'') & 0 \\
+Exact duplicate rows / duplicate transaction IDs & 0 / 0 \\
+Domain-rule violations (quantity, price, discount, value) & 0 \\
+Gross $=$ quantity $\times$ market price (max.\ abs.\ error) & $<10^{-11}$ BDT \\
+Net $=$ gross $-$ discount (max.\ abs.\ error) & $<10^{-11}$ BDT \\
+Year/month columns consistent with date & 100\% \\
+Product ID $\rightarrow$ one name, category, pack size & 100\% \\
+Statistical quantity outliers (flagged, retained) & \NOutlierFlags (\OutlierPct\%) \\
+Warehouse reconciliation (SQL total $-$ pandas total) & 0.00 BDT \\ \bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[htbp]\centering\footnotesize
+\caption{Data dictionary of the transaction dataset}\label{tab:dictionary}
+\begin{tabularx}{\linewidth}{@{}llX@{}}
+\toprule
+\textbf{Column} & \textbf{Type} & \textbf{Description} \\ \midrule
+Transaction\_ID & text & Unique transaction identifier (e.g.\ DC2020000000) \\
+Date & date & Transaction date (dd-mm-yy) \\
+Year, Month, Month\_Name, Quarter & integer/text & Calendar attributes derived from the date \\
+Product\_ID, Product\_Name & text & Product code and name (\NProducts products) \\
+Category & text & Product category (13 categories) \\
+Pack\_Size & text & Pack size, e.g.\ 30g, 27--30g, 30g x 12, 5 pcs \\
+Product\_Launch\_Year & integer & Year the product was introduced \\
+Observed\_Price\_BDT & integer & Printed maximum retail price \\
+List\_Price\_BDT & integer & Company list price for the year \\
+Market\_Price\_BDT & decimal & Transaction price before discount \\
+Discount\_\% & decimal & Discount percentage \\
+Unit\_Selling\_Price\_BDT & decimal & Price per unit after discount \\
+Quantity & integer & Units sold \\
+Gross\_Sales\_BDT & decimal & Quantity $\times$ market price \\
+Discount\_BDT & decimal & Discount amount \\
+Net\_Sales\_BDT & decimal & Gross sales $-$ discount \\
+Region & text & One of 11 regions of Bangladesh \\
+Channel & text & General Trade, Modern Trade, Distributor, E-commerce \\
+Customer\_Type & text & Retailer, Super Shop, Distributor, Corporate, Online Customer \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Preprocessing pipeline}
+The pipeline is written defensively. It must work correctly on dirty data, not only on the delivered file,
+which proved to be exceptionally clean. Its behaviour on dirty data was verified in two ways. Six hands-on
+practice scripts deliberately damaged copies of the data and measured how much was repaired. In addition, the
+automated tests in \texttt{tests/} inject missing values, duplicates and impossible values and assert that the
+pipeline repairs them (\cref{app:reproduce}). The steps are applied in a fixed order, because some steps depend
+on others.
+
+\subsection{Data type conversion and validation}
+Dates are parsed with an explicit format (\texttt{dd-mm-yy}) and numeric columns are coerced. Values that fail
+to parse become missing, so they are never silently misread. Text fields are trimmed of spaces. The validation
+step then produces a machine-readable quality report (\texttt{outputs/metrics/data\_quality.json}). The report
+checks for missing values, hidden placeholder strings, duplicate rows and keys, and domain-rule violations. It
+also checks the accounting identities between columns and the consistency of calendar fields and product
+attributes.
+
+\subsection{Missing-value treatment}
+A decision hierarchy was implemented, following \citet{garcia2015}:
+\begin{enumerate}
+  \item \emph{derive} the value exactly from other columns where an identity exists (for example,
+        $\text{quantity} = \text{gross}/\text{market price}$, or year and month from the date);
+  \item \emph{drop} the row if an essential identifier (transaction ID, date, product) is missing, because a
+        guess would amount to fabrication;
+  \item \emph{impute} numeric gaps with the median of the same product, which is robust to skew;
+  \item \emph{impute} product attributes with the product's mode, and label missing market attributes
+        explicitly as ``Unknown'' so that they remain visible.
+\end{enumerate}
+In practice tests with 3\% of cells removed at random, deriving values from accounting identities restored
+quantities, prices and sales values exactly. Simple mean imputation, by contrast, introduced errors of several
+units per order.
+
+\subsection{Duplicate removal}
+Exact duplicates are removed first. Duplicate keys, meaning the same transaction ID with differing values, are
+resolved by keeping the most complete version. IDs are compared after upper-casing and trimming, so that hidden
+duplicates such as `` dc2020000001'' are caught. Near-duplicates (same date, product, region, channel and
+quantity but different IDs) are only \emph{flagged}. In sales data they are usually genuine repeat orders.
+
+\subsection{Outlier detection and treatment}
+Order quantities are strongly right-skewed (skewness \QtySkew; median \QtyMedian units). Each product also has
+its own typical order size. A global $z$-score therefore flags too many small-product orders and too few
+large-product ones. Four methods were compared in the practice phase: the IQR rule, the $z$-score, the MAD-based
+modified $z$-score, and a per-product IQR rule on the log scale. The last of these was the most balanced, and
+it is the method used in the pipeline:
+\[
+  \text{flag}_i = \bigl[\, \log(1+q_i) \notin [\,Q_1^{(p)} - 1.5\,\text{IQR}^{(p)},\; Q_3^{(p)} + 1.5\,\text{IQR}^{(p)}\,] \bigr],
+\]
+where the quartiles are computed separately for each product $p$. Impossible values (for example, a quantity
+below one or a discount above 50\%) are treated as errors: they are blanked and re-derived. Unusual but possible
+values are flagged and kept. The real data contained \NOutlierFlags such flags (\OutlierPct\% of orders), all
+plausible bulk orders, and no impossible values.
+
+\subsection{Normalisation and encoding}
+Scaling is not applied globally. It is applied \emph{inside} each model's pipeline, fitted on the training rows
+only, to avoid leakage. Count-like features are log-transformed, $\log(1+x)$, to stabilise variance, and they
+are then standardised for scale-sensitive models (linear regression, KNN and SVR). Nominal categories (region,
+channel, customer type, category) are one-hot encoded. Month is encoded cyclically as
+$(\sin 2\pi m/12, \cos 2\pi m/12)$, so that December and January are neighbours. High-cardinality interactions
+(channel $\times$ region, product) are target-encoded with additive smoothing,
+\[
+  \tilde\mu_k = \frac{n_k \bar y_k + m\,\bar y}{n_k + m}, \qquad m=50,
+\]
+using training data only. Rare levels are thereby shrunk towards the overall mean.
+
+\subsection{Feature engineering for demand forecasting}
+Transactions were aggregated into a \emph{panel} of \PanelSeries products $\times$ months. Each feature for
+month $t$ uses only information available at the end of month $t-1$, or information that is planned in advance
+(\cref{tab:features}). The same feature function is used for training, testing and future forecasting, so the
+rule is enforced in one place. One instructive check compared a correct three-month rolling mean (shifted
+before rolling) with a ``leaky'' version that included the current month. The leaky version correlated more
+strongly with the target, which is exactly why leakage is tempting and dangerous \citep{kaufman2012}.
+
+\begin{table}[htbp]\centering\small
+\caption{Features of the demand-forecasting model (\PanelFeatures in total)}\label{tab:features}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Group} & \textbf{Features} \\ \midrule
+History (lags) & units in months $t-1, t-2, t-3, t-6, t-12$ \\
+Rolling statistics & mean of the previous 3, 6 and 12 months; standard deviation of the previous 3 months \\
+Momentum & last month's year-on-year growth; 12-month trend ratio \\
+Price (planned) & list price of month $t$; year-on-year list-price change \\
+Product & category (one-hot); pack weight in grams; gift-pack indicator; months since launch \\
+Calendar & month number; cyclical month (sine, cosine); December and February indicators; days in month; time index \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Evaluation design}
+\subsection{Temporal hold-out}
+Because the problems involve time, every supervised model is trained on the years \textbf{2020--2024} and
+tested on \textbf{January 2025 -- September 2026}. This unseen period of \TestMonths months plays the role of
+``the future''. Random train/test splits were deliberately not used, because they would let the models learn
+from observations that come after the ones they predict \citep{bergmeir2012}.
+
+\subsection{Hyper-parameter tuning}
+Hyper-parameters were tuned only on the training years, using an \emph{expanding-window} validation. For
+validation year $y \in \{2022, 2023, 2024\}$, the model is fitted on all months before $y$ and scored on $y$.
+The configuration with the best mean validation score is then refitted on 2020--2024 and evaluated once on the
+test period. For classification, the probability threshold was chosen in the same way: the model was fitted on
+2020--2023 and the threshold that maximised F1 on 2024 was kept.
+
+\subsection{Metrics}
+For regression, the following measures were used, where $y_i$ is the actual and $\hat y_i$ the predicted value
+for $n$ product-months:
+\begin{align*}
+\text{MAE} &= \tfrac{1}{n}\textstyle\sum_i |y_i-\hat y_i|, &
+\text{RMSE} &= \sqrt{\tfrac{1}{n}\textstyle\sum_i (y_i-\hat y_i)^2}, &
+R^2 &= 1-\frac{\sum_i (y_i-\hat y_i)^2}{\sum_i (y_i-\bar y)^2},\\
+\text{MAPE} &= \tfrac{100}{n}\textstyle\sum_i \frac{|y_i-\hat y_i|}{\max(y_i,1)}, &
+\text{WAPE} &= 100\,\frac{\sum_i |y_i-\hat y_i|}{\sum_i y_i}. &&
+\end{align*}
+WAPE is preferred for business communication because it weights each product by its volume. For
+classification, accuracy, precision, recall, F1, ROC-AUC, PR-AUC and the lift in the top decile were reported.
+For clustering, the silhouette coefficient, the Davies--Bouldin index and the Calinski--Harabasz index were
+reported. Anomaly detectors were evaluated by precision and recall on a copy of the data containing planted
+errors of known type.
+
+\subsection{Benchmarks}
+Following \citet{makridakis2018}, every forecasting model is compared with two naive rules: \emph{naive}
+(next month = this month) and \emph{seasonal naive} (next month = the same month last year). At company level,
+Holt--Winters and SARIMA serve as statistical benchmarks. The majority-class rule is the benchmark for
+classification.
+
+\section{Statistical analysis}
+The exploratory phase used descriptive statistics, Spearman rank correlation (robust to the skewed
+distributions found), Kruskal--Wallis tests for differences between groups, and chi-square tests of
+independence. Because the sample is very large, almost any difference is statistically significant.
+\emph{Effect sizes} ($\varepsilon^2$, $\rho^2$ and Cram\'er's $V$) were therefore reported and used to judge
+practical importance. A fixed-effects log--log regression estimated the price elasticity of demand
+\citep{wooldridge2020}.
+
+Non-parametric tests were chosen deliberately. Order quantities and values are strongly right-skewed (skewness
+\QtySkew and \ValueSkew), so the normality assumption of ANOVA and Pearson correlation is not met
+\citep{field2018}. The Kruskal--Wallis statistic compares mean ranks across $k$ groups,
+\[
+  H = \frac{12}{n(n+1)} \sum_{j=1}^{k} \frac{R_j^2}{n_j} - 3(n+1),
+  \qquad
+  \varepsilon^2 = \frac{H}{(n^2-1)/(n+1)},
+\]
+where $R_j$ is the rank sum of group $j$ with $n_j$ members, and $\varepsilon^2$ is the share of rank variance
+explained by the grouping. Cram\'er's $V=\sqrt{\chi^2/\bigl(n\,(\min(r,c)-1)\bigr)}$ measures the strength of
+association in an $r\times c$ contingency table. Effect sizes were interpreted with the conventions of
+\citet{cohen1988}. All tests used a significance level of $\alpha = 0.05$. \Cref{tab:hypmap} links each
+hypothesis of \cref{sec:hypotheses} to its test.
+
+\begin{table}[htbp]\centering\small
+\caption{Hypotheses, statistical tests and decision rules}\label{tab:hypmap}
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+\textbf{Hypothesis} & \textbf{Test and evidence} & \textbf{Effect size} \\ \midrule
+H1 channel $\rightarrow$ order size & Kruskal--Wallis across 4 channels & $\varepsilon^2$ \\
+H2 customer type $\rightarrow$ order size & Kruskal--Wallis across 5 customer types & $\varepsilon^2$ \\
+H3 discount $\rightarrow$ order size & Spearman rank correlation & $\rho^2$ \\
+H4 monthly seasonality & Kruskal--Wallis on detrended daily sales by month & $\varepsilon^2$ \\
+H5 price elasticity & Fixed-effects log--log regression; $t$-test on the price coefficient & elasticity \\
+H6 ML beats seasonal naive & Out-of-time RMSE and WAPE on 2025--2026 & \% error reduction \\
+H7 channel $\leftrightarrow$ large orders & Chi-square test of independence & Cram\'er's $V$ \\ \bottomrule
+\end{tabularx}
+\par\smallskip\footnotesize $H_0$ is rejected when $p<0.05$. For H6 the decision rests on the size of the
+out-of-time error reduction, which is the quantity of business interest.
+\end{table}
+
+\section{Two complementary modelling studies}
+The predictive work was carried out twice, with different aims. The \emph{production study}
+(\cref{ch:models}) builds the best possible models for the business: rich features, randomised hyper-parameter
+search over expanding-window folds, statistical benchmarks and forecast reconciliation. The
+\emph{algorithm-level study} (\cref{ch:algorithms}) examines each of the nine algorithms named in the proposal
+separately, with a simpler shared feature set, a single 2024 validation year and one transparent script per
+algorithm. Its aims are to explain how each algorithm learns and fails, and to check the production results
+with an independent implementation.
+
+\section{Tools and environment}
+The framework was implemented in Python~3 with pandas and NumPy for data handling \citep{mckinney2022},
+SciPy and statsmodels for statistics and time-series models, scikit-learn for machine learning
+\citep{pedregosa2011}, XGBoost for gradient boosting \citep{chen2016}, Matplotlib and Plotly for
+visualisation, SQLite for the dimensional data store, and Streamlit for the web dashboard. The code is
+version-controlled with Git and published on GitHub. The dashboard is deployed on Streamlit Community Cloud and
+the website on GitHub Pages. The report was typeset in \LaTeX. All random processes use a fixed seed (42), so every result can be reproduced exactly.
+
+\section{Validity and reliability}
+Computational studies face the same four classes of threat as experiments \citep{shadish2002, wohlin2012}.
+\Cref{tab:validity} lists the main threats in this study and the measures taken against each.
+
+\begin{table}[htbp]\centering\small
+\caption{Threats to validity and how they were mitigated}\label{tab:validity}
+\begin{tabularx}{\linewidth}{@{}p{2.6cm}XX@{}}
+\toprule
+\textbf{Type} & \textbf{Threat} & \textbf{Mitigation} \\ \midrule
+Internal & Information leakage from the future inflates accuracy & Strict temporal hold-out; history features shifted before rolling; scalers and encoders fitted on training rows only; an automated test checks that no feature uses the current month \\
+Internal & Tuning on the test set & Hyper-parameters and thresholds chosen on validation years; the test period is scored once \\
+Construct & Metrics that do not reflect business value & WAPE (volume-weighted) for planners, PR-AUC and lift for imbalanced classes, effect sizes beside $p$-values \\
+Statistical conclusion & Significance driven only by sample size & Effect sizes and confidence intervals reported; non-parametric tests for skewed data \\
+External & Results specific to one company and period & Framework kept configurable and domain-independent; findings framed as a case study; limitations stated in \cref{sec:limitations} \\
+Reliability & Results that cannot be reproduced & One command regenerates every number; fixed seed 42; version control; nine automated tests; an independent second implementation (\cref{ch:algorithms}) \\ \bottomrule
+\end{tabularx}
+\end{table}
+
+A further risk concerns \emph{missing data}. \citet{little2019} distinguish data missing completely at random,
+at random, and not at random; only the first two can be imputed without bias. The preprocessing hierarchy
+therefore derives values from exact accounting identities first and imputes statistically only as a last
+resort, which keeps the treatment valid under all three mechanisms for the derivable columns.
+
+\section{Ethical considerations}
+The dataset contains no names, contact details or other personally identifiable information. Customers are
+described only by type (for example, \emph{Retailer}) and region. The data were used solely for academic
+purposes, in line with the ethical principles stated in the proposal. Model limitations and uncertainties are
+reported transparently (\cref{sec:limitations}), so that forecasts are not over-trusted in decision-making.
+The public repository contains only aggregated data, and the raw transaction file is kept private.
+
+\section{Chapter summary}
+The study is positivist, deductive and quantitative, and it follows a design-science strategy in which the
+analytics framework is the artefact. The \NRows transactions were validated, cleaned and transformed with a
+defensive, leakage-safe pipeline. Models are evaluated on a strictly later test period against naive and
+statistical benchmarks, with metrics chosen for business relevance, and hypotheses are tested with
+non-parametric statistics and effect sizes. \Cref{ch:system} now describes how this methodology was turned into
+a working system.

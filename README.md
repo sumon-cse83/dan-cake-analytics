@@ -79,13 +79,25 @@ See [guides/DEPLOYMENT.md](guides/DEPLOYMENT.md): dashboard on **Streamlit Commu
 See [guides/LATEX.md](guides/LATEX.md). Upload the `report/` folder (plus `sql/`) to Overleaf, or compile locally
 with `pdflatex → bibtex → pdflatex ×2`. Edit your name, ID, supervisor and university at the top of `report/main.tex`.
 
-The final report (101 pages, 11 chapters + 4 appendices, 56 references including 34 textbooks) adds an
-algorithm-level study of all nine algorithms (chapter 7, from `algorithms/`), screenshots of every dashboard page
-and the live deployment (chapter 8). To refresh the generated parts after changing code or data:
+The final report is organised in **six chapters**, with no separate appendices (about 107 pages: 12 front-matter
+pages, 88 pages of chapters and 7 pages of references). It cites **70 references, including 44 textbooks**, and no
+single source supplies more than about 3% of the citations. The layout follows the usual university format:
+A4 paper, Times New Roman 12 pt, 1.5 line spacing, a 3.5 cm binding margin and 2.5 cm on the other sides.
+
+| Chapter | Content |
+|---|---|
+| 1 Introduction | context, motivation, problem, aim and objectives, research questions, hypotheses H1–H7, significance, scope |
+| 2 Literature Review | analytics, preprocessing, forecasting, ML, dashboards, engineering of ML systems, conceptual framework, research gap, 44 textbooks |
+| 3 Research Methodology | research philosophy and design, data and data dictionary, preprocessing, features, evaluation design, statistics, validity, ethics |
+| 4 System Design and Implementation | requirements, architecture, module design, star schema and SQL, dashboard (9 screenshots), deployment, testing, reproduction |
+| 5 Results, Evaluation and Discussion | EDA, production models, algorithm-level study of 9 methods, insights, system evaluation, hypothesis decisions, research questions, comparison with the literature |
+| 6 Conclusion | summary, objectives achieved, recommendations, contributions, limitations, future work |
+
+To refresh the generated parts after changing code or data:
 
 ```powershell
-python algorithms\export_to_report.py        # chapter 7 tables, numbers and figures
-python tools\capture_screenshots.py          # chapter 8 screenshots (dashboard running on port 8510)
+python algorithms\export_to_report.py        # tables, numbers and figures of section 5.3
+python tools\capture_screenshots.py          # dashboard screenshots of section 4.6 (dashboard running on port 8510)
 cd report; ..\.tex\Library\bin\tectonic.exe -X compile main.tex
 ```
 

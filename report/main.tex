@@ -13,12 +13,13 @@
 % ---------------------------------------------------------------- packages
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{lmodern}
-\usepackage[margin=2.5cm,left=3cm]{geometry}
+\usepackage{newtxtext}   % Times New Roman body text, 12 pt (matching maths loaded after amsmath)
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,right=2.5cm,left=3.5cm]{geometry}   % 3.5 cm binding margin
 \usepackage{setspace}\onehalfspacing
 \usepackage{graphicx}
 \usepackage{booktabs,tabularx,longtable,array,multirow}
-\usepackage{amsmath,amssymb}
+\usepackage{amsmath}
+\usepackage{newtxmath}   % Times-compatible maths; provides the amssymb symbols
 \usepackage{xcolor}
 \usepackage{caption}\captionsetup{font=small,labelfont=bf,skip=6pt}
 \usepackage{float}
@@ -36,10 +37,13 @@
 \definecolor{brand}{HTML}{1F4E79}
 \definecolor{accent}{HTML}{C55A11}
 \definecolor{codebg}{HTML}{F5F7FA}
-\titleformat{\chapter}[display]{\normalfont\huge\bfseries\color{brand}}{\chaptertitlename\ \thechapter}{12pt}{\Huge}
-\titlespacing*{\chapter}{0pt}{-10pt}{24pt}
-\titleformat{\section}{\normalfont\Large\bfseries\color{brand}}{\thesection}{1em}{}
-\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+% Standard academic headings: black, bold, chapter titles centred
+\titleformat{\chapter}[display]{\normalfont\LARGE\bfseries\centering}{\MakeUppercase{\chaptertitlename}\ \thechapter}{10pt}{\LARGE}
+\titlespacing*{\chapter}{0pt}{-20pt}{24pt}
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries\itshape}{\thesubsubsection}{1em}{}
+\setcounter{secnumdepth}{3}\setcounter{tocdepth}{2}
 \setlength{\headheight}{15pt}
 \pagestyle{fancy}\fancyhf{}\fancyhead[L]{\small\nouppercase{\leftmark}}\fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
@@ -106,21 +110,17 @@
 \cleardoublepage
 \pagenumbering{arabic}
 
-\input{chapters/01_introduction.tex}
-\input{chapters/02_literature.tex}
-\input{chapters/03_methodology.tex}
-\input{chapters/04_system.tex}
-\input{chapters/05_eda.tex}
-\input{chapters/06_models.tex}
-\input{chapters/06b_algorithms.tex}
-\input{chapters/07_dashboard.tex}
-\input{chapters/08_discussion.tex}
-\input{chapters/09_conclusion.tex}
+% Six chapters. Everything (data dictionary, SQL, hyper-parameters, deployment
+% steps) lives inside Chapters 1-6; there are no separate appendices.
+\input{chapters/ch1_introduction.tex}
+\input{chapters/ch2_literature.tex}
+\input{chapters/ch3_methodology.tex}
+\input{chapters/ch4_system.tex}
+\input{chapters/ch5_results.tex}
+\input{chapters/ch6_conclusion.tex}
 
+\renewcommand{\bibsection}{\chapter*{References}\addcontentsline{toc}{chapter}{References}\markboth{References}{References}}
 \bibliographystyle{plainnat}
 \bibliography{references}
-
-\appendix
-\input{chapters/10_appendix.tex}
 
 \end{document}

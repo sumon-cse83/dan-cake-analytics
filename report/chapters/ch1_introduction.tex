@@ -1,5 +1,9 @@
 \chapter{Introduction}\label{ch:intro}
 
+This chapter introduces the study. It describes the business context and the motivation for the work, states
+the problem, the aim, the objectives, the research questions and the hypotheses, and defines the scope and the
+expected contributions. It ends with an outline of the six chapters of the report.
+
 \section{Context of the study}
 Fast-moving consumer goods (FMCG) companies make a large number of small decisions every day. They decide how
 much of each product to bake, which distributor receives which consignment, which region deserves another
@@ -15,6 +19,17 @@ e-commerce. A transaction-level dataset of \NRows sales records from \DateMin to
 this project. It is large enough that spreadsheet analysis becomes slow and error-prone, yet small enough to be
 analysed in full on a laptop with open-source tools. It is therefore a realistic test bed for the framework
 proposed here.
+
+\section{Motivation}
+Three developments motivate the study. First, analytics has become a recognised source of competitive
+advantage: organisations that base decisions on data and models tend to outperform those that rely on
+intuition and precedent \citep{davenport2007, provost2013}. Second, the tools needed to do this are no longer
+the preserve of large enterprises. Open-source libraries for data handling and machine learning
+\citep{mckinney2022, pedregosa2011} and free cloud platforms allow a small team, or a single analyst, to build
+and publish a complete analytical system. Third, the literature warns that many applied predictive studies
+report optimistic accuracy because of information leakage, random validation splits or missing benchmarks
+\citep{kaufman2012, bergmeir2012}. A study that applies modern methods \emph{and} evaluates them honestly on
+realistic business data is therefore useful both to managers and to students of analytics.
 
 \section{Problem statement}
 Routine reporting in many organisations still relies on spreadsheets prepared by hand. Such reports usually
@@ -56,6 +71,29 @@ decision-making. The specific objectives are:
 \end{enumerate}
 \Cref{ch:discussion} answers each question explicitly.
 
+\section{Research hypotheses}\label{sec:hypotheses}
+Research questions RQ4 and RQ5 were made testable as seven hypotheses. Each is stated as an alternative
+hypothesis ($H_a$). The null hypothesis $H_0$ is that there is no difference, association or improvement. The
+statistical tests are described in \cref{ch:method}, and \cref{sec:hyptest} reports the decisions.
+\begin{enumerate}[label=H\arabic*.]
+  \item The number of units per order differs between sales channels.
+  \item The number of units per order differs between customer types.
+  \item Deeper discounts are associated with larger orders.
+  \item Daily sales follow a calendar-month seasonal pattern after the trend is removed.
+  \item Demand for Dan Cake products is price-elastic, that is, the absolute price elasticity is greater than zero.
+  \item Machine-learning forecasts are more accurate than the seasonal-naive rule (``same month last year'').
+  \item The occurrence of large orders is associated with the sales channel.
+\end{enumerate}
+
+\section{Significance of the study}
+The study is significant at three levels. For the \emph{company}, it shows how data that are already collected
+can support production, pricing, discount and distribution decisions, with each recommendation traceable to
+evidence. For \emph{practitioners}, it provides a complete, open-source and reusable template whose design
+choices (leakage-safe features, time-ordered validation, generated reporting) avoid common mistakes of applied
+machine learning \citep{kaufman2012, sculley2015}. For \emph{research}, it adds a documented case from the
+Bangladeshi consumer-goods sector, which is rarely represented in the analytics literature, and it compares
+classical and machine-learning methods under one evaluation protocol \citep{hyndman2021}.
+
 \section{Scope}
 The proposal allowed one business domain to be chosen. This study focuses on \textbf{sales analytics}, and
 within it on four analytical problems: (i) monthly demand forecasting for each product, (ii) prediction of
@@ -83,12 +121,18 @@ project contributes:
 \end{itemize}
 
 \section{Structure of the report}
-\Cref{ch:literature} reviews the literature on business analytics, data preparation, forecasting, machine
-learning and dashboards. \Cref{ch:method} sets out the research methodology. \Cref{ch:system} describes the
-architecture of the framework, the dataset and the preprocessing pipeline. \Cref{ch:eda} presents the
-exploratory analysis. \Cref{ch:models} reports the development and evaluation of the machine-learning models.
-\Cref{ch:algorithms} studies each of the nine machine-learning algorithms separately: its principle, its
-settings, its behaviour on the Dan Cake data and its practical strengths and weaknesses. \Cref{ch:dashboard}
-presents the dashboard page by page, its public deployment and the decision-support layer. \Cref{ch:discussion} discusses the
-findings, answers the research questions and states the limitations. \Cref{ch:conclusion} concludes and
-proposes future work.
+The report is organised in six chapters (\cref{tab:structure}).
+
+\begin{table}[htbp]\centering\small
+\caption{Organisation of the report}\label{tab:structure}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Chapter} & \textbf{Content} \\ \midrule
+1 Introduction & context, motivation, problem, aim and objectives, research questions, hypotheses, scope and contributions \\
+2 Literature Review & business analytics, process models, data preparation, warehousing, forecasting, classification, clustering, anomaly detection, explainability, dashboards, engineering of ML systems, conceptual framework, research gap and core textbooks \\
+3 Research Methodology & research philosophy and design, problem definition, dataset and data dictionary, preprocessing and feature engineering, evaluation design, statistical analysis, tools, validity and ethics \\
+4 System Design and Implementation & requirements, layered architecture, module design, star schema and SQL, interactive dashboard, deployment, testing and reproducibility \\
+5 Results, Evaluation and Discussion & exploratory analysis, predictive models, algorithm-level study of nine methods, decision-support insights, system evaluation, hypothesis decisions and answers to the research questions \\
+6 Conclusion, Recommendations and Future Work & summary, achievement of objectives, recommendations, contributions, limitations, reflection and future work \\ \bottomrule
+\end{tabularx}
+\end{table}
