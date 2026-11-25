@@ -94,6 +94,23 @@ A4 paper, Times New Roman 12 pt, 1.5 line spacing for the text (single spacing i
 | 5 Results, Evaluation and Discussion | EDA, production models, algorithm-level study of 9 methods, insights, system evaluation, hypothesis decisions, research questions, comparison with the literature |
 | 6 Conclusion | summary, objectives achieved, recommendations, contributions, limitations, future work |
 
+### Microsoft Word version
+
+The same report is also available as an editable Word document: `report/main.docx` (a copy is in
+`docs/report.docx`, 99 pages, same chapters, figures, tables and references). It is generated from the LaTeX source,
+so both versions always agree. It has real Word heading styles, an automatic table of contents, lists of figures
+and tables, roman page numbers for the front matter and arabic numbers from Chapter 1. Equations and diagrams are
+inserted as high-resolution pictures; everything else (text, tables, lists, captions, code) is editable. To
+regenerate it (Microsoft Word must be installed):
+
+```powershell
+cd report; ..\.tex\Library\bin\tectonic.exe -X compile -k main.tex; cd ..
+python tools\latex_to_word.py
+```
+
+After editing your name, ID and supervisor in Word, right-click the table of contents and choose
+**Update Field → Update entire table** (or press Ctrl+A, then F9) to refresh the page numbers.
+
 To refresh the generated parts after changing code or data:
 
 ```powershell

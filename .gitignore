@@ -28,3 +28,6 @@ report_overleaf.zip
 outputs/*.txt
 # private: the proposal document is not published (remove this line if you want it in the repo)
 Project Proposal.docx
+# Word conversion build files (tools/latex_to_word.py)
+report/_word_build/
+report/~$*.docx

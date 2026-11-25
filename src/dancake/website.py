@@ -68,7 +68,7 @@ footer{margin-top:48px;padding:28px 0;border-top:1px solid var(--line);color:var
 <span class="tag">MSc Project · Data Science · Business Intelligence</span>
 <h1>An Intelligent Data Analytics and Machine Learning Framework for Predictive Business Decision-Making</h1>
 <p>Case study: __NROWS__ sales transactions of Dan Cake products in Bangladesh, January 2020 – September 2026. The framework answers three management questions: <b>what happened, why it happened, and what is likely to happen next.</b></p>
-<div class="btns"><a class="btn1" href="__DASH__">Open live dashboard</a><a class="btn2" href="report.pdf">Read the report (PDF)</a><a class="btn2" href="__REPO__">Source code</a></div>
+<div class="btns"><a class="btn1" href="__DASH__">Open live dashboard</a><a class="btn2" href="report.pdf">Read the report (PDF)</a><a class="btn2" href="report.docx">Report (Word)</a><a class="btn2" href="__REPO__">Source code</a></div>
 </div></header>
 <div class="wrap"><div class="kpis" id="kpis"></div></div>
 <nav><div class="wrap"><a href="#what">What happened</a><a href="#why">Why</a><a href="#next">What next</a><a href="#models">Models</a><a href="#insights">Recommendations</a><a href="#method">Method</a></div></nav>
@@ -154,6 +154,9 @@ def build(dashboard_url="https://dan-cake-analytics.streamlit.app", repo_url="ht
     pdf = C.REPORT / "main.pdf"
     if pdf.exists():
         shutil.copy(pdf, C.SITE / "report.pdf")
+    docx = C.REPORT / "main.docx"          # written by tools/latex_to_word.py
+    if docx.exists():
+        shutil.copy(docx, C.SITE / "report.docx")
     (C.SITE / ".nojekyll").write_text("")
     print(f"[website] docs/index.html written ({len(page) / 1024:.0f} KB)")
 
