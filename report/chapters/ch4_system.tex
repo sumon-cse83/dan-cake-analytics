@@ -265,22 +265,29 @@ the expected level, marks the flagged days and lists the most suspicious orders 
 a recommended action. Finally, the \emph{data quality} page (\cref{fig:dashquality}) documents the validation
 checks and the cleaning log, so users can see why the numbers can be trusted.
 
-\newcommand{\dashshot}[3]{%
-\begin{figure}[p]\centering
-\includegraphics[width=\linewidth,height=.86\textheight,keepaspectratio]{screens/#1}
+% Two screenshots side by side per figure, each with its own caption and number.
+\newcommand{\dashpair}[6]{%
+\begin{figure}[tbp]\centering
+\begin{minipage}[b]{.485\linewidth}\centering
+\includegraphics[width=\linewidth,height=.4\textheight,keepaspectratio]{screens/#1}
 \caption{#2}\label{#3}
+\end{minipage}\hfill
+\begin{minipage}[b]{.485\linewidth}\centering
+\includegraphics[width=\linewidth,height=.4\textheight,keepaspectratio]{screens/#4}
+\caption{#5}\label{#6}
+\end{minipage}
 \end{figure}}
 
-\dashshot{dash_overview}{Dashboard page 1 -- Executive overview: KPI cards, monthly trend, sales mix and annual summary}{fig:dashoverview}
-\dashshot{dash_trends_main}{Dashboard page 2 -- Trends and seasonality}{fig:dashtrends}
-\dashshot{dash_products_main}{Dashboard page 3 -- Products and portfolio, with Pareto/ABC analysis and product segments}{fig:dashproducts}
-\dashshot{dash_markets_main}{Dashboard page 4 -- Markets and customers, with region $\times$ channel heat maps and market segments}{fig:dashmarkets}
-\dashshot{dash_forecast_main}{Dashboard page 5 -- Demand forecast: 12-month outlook with its 80\% interval, category and product forecasts}{fig:dashforecast}
-\dashshot{dash_models_main}{Dashboard page 6 -- Machine-learning models: test errors against baselines, recursive test and feature importance}{fig:dashmodels}
-\dashshot{dash_anomalies_main}{Dashboard page 7 -- Anomaly monitor: daily sales against the expected level and suspicious orders}{fig:dashanomalies}
-\dashshot{dash_insights_main}{Dashboard page 8 -- Automatically generated insights and recommendations}{fig:dashinsights}
-\dashshot{dash_quality_main}{Dashboard page 9 -- Data quality and method}{fig:dashquality}
-\clearpage   % keep all nine screenshots inside this section
+\dashpair{dash_overview}{Dashboard page 1 -- Executive overview: KPI cards, trend, sales mix}{fig:dashoverview}
+         {dash_trends_main}{Dashboard page 2 -- Trends and seasonality}{fig:dashtrends}
+\dashpair{dash_products_main}{Dashboard page 3 -- Products, Pareto/ABC analysis and product segments}{fig:dashproducts}
+         {dash_markets_main}{Dashboard page 4 -- Markets, region $\times$ channel heat maps and segments}{fig:dashmarkets}
+\dashpair{dash_forecast_main}{Dashboard page 5 -- 12-month demand forecast with its 80\% interval}{fig:dashforecast}
+         {dash_models_main}{Dashboard page 6 -- Model errors against baselines and feature importance}{fig:dashmodels}
+\dashpair{dash_anomalies_main}{Dashboard page 7 -- Anomaly monitor and suspicious orders}{fig:dashanomalies}
+         {dash_insights_main}{Dashboard page 8 -- Generated insights and recommendations}{fig:dashinsights}
+\dashpair{dash_quality_main}{Dashboard page 9 -- Data quality and method}{fig:dashquality}
+         {website}{Project website on GitHub Pages, linking the dashboard, report and code}{fig:website}
 
 \section{Deployment and operation}\label{sec:deployment}
 \subsection{Live system}
@@ -329,12 +336,7 @@ a monthly planning tool.
 \end{figure}
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=\linewidth]{screens/website}
-\caption{Project website on GitHub Pages, with links to the live dashboard, the report and the source code}\label{fig:website}
-\end{figure}
-
-\begin{figure}[htbp]\centering
-\includegraphics[width=\linewidth]{screens/github_repo}
+\includegraphics[width=.62\linewidth]{screens/github_repo}
 \caption{Public GitHub repository holding the code, the dashboard data, the website and the report}\label{fig:github}
 \end{figure}
 

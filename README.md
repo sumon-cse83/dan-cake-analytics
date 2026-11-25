@@ -79,10 +79,11 @@ See [guides/DEPLOYMENT.md](guides/DEPLOYMENT.md): dashboard on **Streamlit Commu
 See [guides/LATEX.md](guides/LATEX.md). Upload the `report/` folder (plus `sql/`) to Overleaf, or compile locally
 with `pdflatex → bibtex → pdflatex ×2`. Edit your name, ID, supervisor and university at the top of `report/main.tex`.
 
-The final report is organised in **six chapters**, with no separate appendices (about 107 pages: 12 front-matter
-pages, 88 pages of chapters and 7 pages of references). It cites **70 references, including 44 textbooks**, and no
+The final report is organised in **six chapters**, with no separate appendices (96 pages in total, within the
+100-page limit: 12 front-matter pages, 80 pages of chapters and 4 pages of references). It cites **70 references, including 44 textbooks**, and no
 single source supplies more than about 3% of the citations. The layout follows the usual university format:
-A4 paper, Times New Roman 12 pt, 1.5 line spacing, a 3.5 cm binding margin and 2.5 cm on the other sides.
+A4 paper, Times New Roman 12 pt, 1.5 line spacing for the text (single spacing in tables and references), a
+3.5 cm binding margin and 2.5 cm on the other sides.
 
 | Chapter | Content |
 |---|---|

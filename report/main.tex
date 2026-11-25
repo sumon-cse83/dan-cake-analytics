@@ -16,6 +16,10 @@
 \usepackage{newtxtext}   % Times New Roman body text, 12 pt (matching maths loaded after amsmath)
 \usepackage[a4paper,top=2.5cm,bottom=2.5cm,right=2.5cm,left=3.5cm]{geometry}   % 3.5 cm binding margin
 \usepackage{setspace}\onehalfspacing
+\usepackage{etoolbox}   % tables, listings and the reference list are single-spaced (standard practice)
+\AtBeginEnvironment{table}{\setstretch{1}}
+\AtBeginEnvironment{longtable}{\setstretch{1}}
+\AtBeginEnvironment{lstlisting}{\setstretch{1}}
 \usepackage{graphicx}
 \usepackage{booktabs,tabularx,longtable,array,multirow}
 \usepackage{amsmath}
@@ -121,6 +125,8 @@
 
 \renewcommand{\bibsection}{\chapter*{References}\addcontentsline{toc}{chapter}{References}\markboth{References}{References}}
 \bibliographystyle{plainnat}
+\begingroup\setstretch{1}\small\setlength{\bibsep}{3pt plus 1pt}
 \bibliography{references}
+\endgroup
 
 \end{document}
