@@ -39,11 +39,11 @@ for d in depths:
     fit_auc.append(roc_auc_score(s["fit"]["large_order"], t.predict_proba(s["fit"][ORDER_FEATS])[:, 1]))
     val_auc.append(roc_auc_score(s["val"]["large_order"], t.predict_proba(s["val"][ORDER_FEATS])[:, 1]))
 best_depth = list(depths)[int(np.argmax(val_auc))]
-fig, ax = plt.subplots(figsize=(7, 4.5))
+fig, ax = plt.subplots(figsize=(3.9, 2.4))
 ax.plot(depths, fit_auc, "o-", label="data it learned from (2020-23)")
 ax.plot(depths, val_auc, "o-", label="unseen data (2024)")
 ax.axvline(best_depth, ls="--", c="grey")
-ax.set_xlabel("max_depth"); ax.set_ylabel("ROC-AUC"); ax.legend(); ax.set_title("Overfitting: training score keeps rising, unseen score falls")
+ax.set_xlabel("max_depth"); ax.set_ylabel("ROC-AUC"); ax.legend(); ax.set_title("Training score rises, unseen score falls")
 savefig(fig, "03_depth_tuning.png")
 print("\nbest max_depth on 2024:", best_depth)
 
@@ -58,9 +58,9 @@ results = {
 show(results, "Test results 2025-2026 (higher = better):")
 
 # %% Step 5. Draw the top of the tree
-fig, ax = plt.subplots(figsize=(18, 7))
+fig, ax = plt.subplots(figsize=(6.6, 2.9))
 plot_tree(tree, max_depth=2, feature_names=ORDER_FEATS, class_names=["small", "large"],
-          filled=True, rounded=True, fontsize=8, ax=ax)
+          filled=True, rounded=True, fontsize=7, impurity=False, proportion=True, precision=2, ax=ax)
 savefig(fig, "03_tree.png")
 # Colour: orange = mostly small, blue = mostly large. Darker = purer group.
 

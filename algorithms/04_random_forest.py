@@ -36,7 +36,7 @@ for n in sizes:
     rf.fit(s["fit"][MONTH_FEATS], s["fit"]["units"])
     val_mae.append(mean_absolute_error(s["val"].units, rf.predict(s["val"][MONTH_FEATS])))
 print("Forest MAE on 2024 by number of trees:", dict(zip(sizes, np.round(val_mae, 1).tolist())))
-fig, ax = plt.subplots(figsize=(7, 4.5))
+fig, ax = plt.subplots(figsize=(4.4, 2.5))
 ax.plot(sizes, val_mae, "o-"); ax.set_xscale("log")
 ax.set_xlabel("number of trees (n_estimators)"); ax.set_ylabel("MAE on 2024 (units)")
 ax.set_title("More trees -> lower error, then it levels off")

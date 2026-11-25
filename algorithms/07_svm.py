@@ -65,7 +65,7 @@ grid = pd.DataFrame(grid).sort_values("AUC_2024", ascending=False)
 print("\nTuning results (2024):\n" + grid.to_string(index=False))
 best = grid.iloc[0]
 
-fig, ax = plt.subplots(figsize=(6.5, 4))
+fig, ax = plt.subplots(figsize=(4.4, 2.5))
 for g, part in grid.groupby("gamma"):
     part = part.sort_values("C")
     ax.plot(part["C"], part["AUC_2024"], "o-", label=f"gamma={g}")

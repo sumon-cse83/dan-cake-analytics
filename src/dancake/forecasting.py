@@ -227,19 +227,23 @@ def run(d: pd.DataFrame) -> dict:
                    "tab:company", fmt={"MAE": "{:,.0f}", "RMSE": "{:,.0f}", "MAPE %": "{:.2f}"}, col_align="lrrr")
 
     # ---------------------------------------------------------------- figures: comparison & actual vs predicted
-    fig, ax = plt.subplots(1, 2, figsize=(11, 3.8))
+    fig, ax = plt.subplots(1, 2, figsize=(7.2, 3.1), gridspec_kw={"width_ratios": [1.35, 1]})
     r = res.sort_values("RMSE")
     ax[0].barh(r.Model, r.RMSE, color=[C.ACCENT if m == best else (C.PALETTE[9] if k == "baseline" else C.PRIMARY)
                                         for m, k in zip(r.Model, r.kind)])
-    ax[0].invert_yaxis(); ax[0].set_title("Test RMSE (units per product-month)"); ax[0].set_xlabel("RMSE (lower is better)")
+    ax[0].invert_yaxis(); ax[0].set_title("Test RMSE by model"); ax[0].set_xlabel("RMSE (lower is better)")
     ax[1].scatter(test.units, test[f"pred_{best}"], s=8, alpha=.5, color=C.PRIMARY)
     lim = [min(test.units.min(), test[f"pred_{best}"].min()) * 0.9, test.units.max() * 1.1]
     ax[1].plot(lim, lim, "k--", lw=.8, label="perfect forecast")
     ax[1].set_xscale("log"); ax[1].set_yscale("log"); ax[1].set_xlim(lim); ax[1].set_ylim(lim); ax[1].legend()
-    ax[1].set_title(f"{best}: actual vs predicted (test)"); ax[1].set_xlabel("actual units"); ax[1].set_ylabel("predicted units")
+    from matplotlib.ticker import FixedLocator, NullLocator, ScalarFormatter   # plain, non-overlapping log ticks
+    for axis in (ax[1].xaxis, ax[1].yaxis):
+        axis.set_major_locator(FixedLocator([t for t in (100, 200, 500, 1000, 2000, 5000) if lim[0] <= t <= lim[1]]))
+        axis.set_major_formatter(ScalarFormatter()); axis.set_minor_locator(NullLocator())
+    ax[1].set_title("Best model: actual vs predicted"); ax[1].set_xlabel("actual units"); ax[1].set_ylabel("predicted units")
     savefig(fig, "ml_forecast_comparison")
 
-    fig, ax = plt.subplots(figsize=(10, 3.8))
+    fig, ax = plt.subplots(figsize=(7.0, 3.0))
     ax.plot(total_units.index, total_units / 1e3, color="black", lw=1.4, label="actual")
     ax.plot(te_u.index, hw_p / 1e3, color=C.PALETTE[2], lw=1.4, ls="--", label="Holt-Winters")
     ax.plot(te_u.index, sar_p / 1e3, color=C.PALETTE[3], lw=1.2, ls=":", label="SARIMA")
@@ -263,11 +267,11 @@ def run(d: pd.DataFrame) -> dict:
     names = xp.named_steps["prep"].get_feature_names_out()
     shap_imp = pd.Series(np.abs(contrib).mean(0), index=names).sort_values(ascending=False)
     out["xgb_shap_importance"] = shap_imp.head(12).to_dict()
-    fig, ax = plt.subplots(1, 2, figsize=(11, 4))
+    fig, ax = plt.subplots(1, 2, figsize=(7.2, 3.2))
     a = imp.head(12)[::-1]; ax[0].barh(a.index, a.values, color=C.PRIMARY)
-    ax[0].set_title(f"Permutation importance - {best}"); ax[0].set_xlabel("increase in RMSE (log units) when shuffled")
+    ax[0].set_title("Permutation importance (best model)"); ax[0].set_xlabel("RMSE increase when shuffled")
     b = shap_imp.head(12)[::-1]; ax[1].barh(b.index, b.values, color=C.ACCENT)
-    ax[1].set_title("XGBoost mean |SHAP value|"); ax[1].set_xlabel("mean absolute contribution (log units)")
+    ax[1].set_title("XGBoost mean |SHAP value|"); ax[1].set_xlabel("mean |contribution| (log units)")
     savefig(fig, "ml_feature_importance")
 
     # ---------------------------------------------------------------- future: Oct 2026 - Sep 2027
@@ -341,7 +345,7 @@ def run(d: pd.DataFrame) -> dict:
                         "from Holt-Winters models of company units and net sales (BDT million); intervals are the 10th and "
                         "90th percentiles of 2,000 simulated future paths. Product forecasts are scaled to these totals.")
 
-    fig, ax = plt.subplots(figsize=(10, 3.8))
+    fig, ax = plt.subplots(figsize=(7.0, 3.0))
     hist_s = total_sales[-36:] / 1e6
     ax.plot(hist_s.index, hist_s, color="black", lw=1.4, label="actual net sales")
     ax.plot(ftot.index, ftot.net_sales / 1e6, color=C.ACCENT, lw=1.8, marker="o", ms=3, label="forecast (Holt-Winters, reconciled)")

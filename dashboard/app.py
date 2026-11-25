@@ -108,10 +108,10 @@ def kpi_row(cf):
     c = st.columns(6)
     c[0].metric("Net sales", bdt(cf.net.sum()))
     c[1].metric("Units sold", f"{cf.units.sum() / 1e6:,.2f}M")
-    c[2].metric("Orders", f"{cf.orders.sum():,}")
+    c[2].metric("Orders", f"{cf.orders.sum() / 1e3:,.0f}K")
     c[3].metric("Avg order value", bdt(cf.net.sum() / max(cf.orders.sum(), 1), "x"))
     c[4].metric("Discount rate", f"{cf.discount.sum() / max(cf.gross.sum(), 1) * 100:.2f}%")
-    c[5].metric("YTD growth", f"{g:+.1f}%" if pd.notna(g) else "–",
+    c[5].metric("YTD growth", f"{g:+.0f}%" if pd.notna(g) else "–",
                 help=f"Jan–{MONTHS[last_m - 1]} {last_year} vs the same months of {last_year - 1}")
 
 

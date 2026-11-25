@@ -80,7 +80,7 @@ The dataset comprises \NRows transactions with \NCols attributes, recorded betwe
 record holds an identifier and date; the product (identifier, name, category, pack size, launch year); price
 information (printed maximum retail price, list price, market price, discount percentage and unit selling
 price); the quantity; the gross, discount and net sales values in Bangladeshi Taka (BDT); and the region,
-channel and customer type. \Cref{tab:dictionary} gives the full data dictionary. The
+channel and customer type. \Cref{app:dictionary} gives the full data dictionary. The
 data contain no personal identifiers.
 
 \subsection{Dataset profile and validation}
@@ -110,40 +110,12 @@ Warehouse reconciliation (SQL total $-$ pandas total) & 0.00 BDT \\ \bottomrule
 \end{tabular}
 \end{table}
 
-
-\begin{table}[htbp]\centering\footnotesize
-\caption{Data dictionary of the transaction dataset}\label{tab:dictionary}
-\begin{tabularx}{\linewidth}{@{}llX@{}}
-\toprule
-\textbf{Column} & \textbf{Type} & \textbf{Description} \\ \midrule
-Transaction\_ID & text & Unique transaction identifier (e.g.\ DC2020000000) \\
-Date & date & Transaction date (dd-mm-yy) \\
-Year, Month, Month\_Name, Quarter & integer/text & Calendar attributes derived from the date \\
-Product\_ID, Product\_Name & text & Product code and name (\NProducts products) \\
-Category & text & Product category (13 categories) \\
-Pack\_Size & text & Pack size, e.g.\ 30g, 27--30g, 30g x 12, 5 pcs \\
-Product\_Launch\_Year & integer & Year the product was introduced \\
-Observed\_Price\_BDT & integer & Printed maximum retail price \\
-List\_Price\_BDT & integer & Company list price for the year \\
-Market\_Price\_BDT & decimal & Transaction price before discount \\
-Discount\_\% & decimal & Discount percentage \\
-Unit\_Selling\_Price\_BDT & decimal & Price per unit after discount \\
-Quantity & integer & Units sold \\
-Gross\_Sales\_BDT & decimal & Quantity $\times$ market price \\
-Discount\_BDT & decimal & Discount amount \\
-Net\_Sales\_BDT & decimal & Gross sales $-$ discount \\
-Region & text & One of 11 regions of Bangladesh \\
-Channel & text & General Trade, Modern Trade, Distributor, E-commerce \\
-Customer\_Type & text & Retailer, Super Shop, Distributor, Corporate, Online Customer \\ \bottomrule
-\end{tabularx}
-\end{table}
-
-\section{Preprocessing pipeline}
+\section{Preprocessing pipeline}\label{sec:preprocessing}
 The pipeline is written defensively. It must work correctly on dirty data, not only on the delivered file,
 which proved to be exceptionally clean. Its behaviour on dirty data was verified in two ways. Six hands-on
 practice scripts deliberately damaged copies of the data and measured how much was repaired. In addition, the
 automated tests in \texttt{tests/} inject missing values, duplicates and impossible values and assert that the
-pipeline repairs them (\cref{app:reproduce}). The steps are applied in a fixed order, because some steps depend
+pipeline repairs them (\cref{sec:testing}). The steps are applied in a fixed order, because some steps depend
 on others.
 
 \subsection{Data type conversion and validation}

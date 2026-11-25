@@ -155,21 +155,20 @@ def run(d: pd.DataFrame) -> dict:
                         "large-order rate among the 10\\% highest-scored orders divided by the overall rate.")
 
     best = res.Model.iloc[0]
-    fig, ax = plt.subplots(1, 3, figsize=(12, 3.8), gridspec_kw={"width_ratios": [1.2, 1, 1]})
+    # two panels (the metrics of all models are in the table next to the figure)
+    fig, ax = plt.subplots(1, 2, figsize=(7.2, 3.2), gridspec_kw={"width_ratios": [1.25, 1]})
     for name, (fpr, tpr) in curves.items():
         ax[0].plot(fpr, tpr, lw=1.6 if name == best else 1, label=f"{name} ({res.set_index('Model').loc[name, 'ROC-AUC']:.3f})")
-    ax[0].plot([0, 1], [0, 1], "k--", lw=.7); ax[0].set_title("ROC curves (test)"); ax[0].legend(fontsize=6.5)
+    ax[0].plot([0, 1], [0, 1], "k--", lw=.7); ax[0].set_title("ROC curves (test)"); ax[0].legend(fontsize=7, loc="lower right")
     ax[0].set_xlabel("false positive rate"); ax[0].set_ylabel("true positive rate")
     cm = cms[best]
     ax[1].imshow(cm, cmap="Blues"); ax[1].grid(False)
     for i in range(2):
         for j in range(2):
-            ax[1].text(j, i, f"{cm[i, j]:,}", ha="center", va="center", color="white" if cm[i, j] > cm.max() / 2 else "black")
+            ax[1].text(j, i, f"{cm[i, j]:,}", ha="center", va="center", fontsize=10,
+                       color="white" if cm[i, j] > cm.max() / 2 else "black")
     ax[1].set_xticks([0, 1], ["pred. normal", "pred. large"]); ax[1].set_yticks([0, 1], ["normal", "large"])
-    ax[1].set_title(f"Confusion matrix - {best}")
-    m = res.set_index("Model")[["Precision", "Recall", "F1", "ROC-AUC"]]
-    m.plot.barh(ax=ax[2], width=.8); ax[2].set_xlim(0, 1); ax[2].set_title("Metric comparison"); ax[2].legend(fontsize=7)
-    ax[2].tick_params(axis="y", labelsize=7)
+    ax[1].set_title(f"Confusion matrix: {best}")
     savefig(fig, "ml_classification")
 
     # explainability: XGBoost gain importance aggregated back to the original variables
@@ -178,7 +177,7 @@ def run(d: pd.DataFrame) -> dict:
     imp = pd.Series(booster.feature_importances_, index=names)
     agg = imp.groupby(lambda s: next((c for c in CAT if s.startswith(c + "_")), s)).sum().sort_values(ascending=False)
     out["xgb_importance"] = agg.to_dict()
-    fig, ax = plt.subplots(figsize=(6, 3.6))
+    fig, ax = plt.subplots(figsize=(4.8, 3.0))
     a = agg.head(12)[::-1]; ax.barh(a.index, a.values, color=C.PRIMARY)
     ax.set_title("What drives a large order? (XGBoost gain)"); ax.set_xlabel("share of total gain")
     savefig(fig, "ml_classification_importance")

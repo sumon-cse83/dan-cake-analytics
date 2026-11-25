@@ -34,7 +34,7 @@ print(f"Meaning: a product that sold 1000 units last month is predicted to sell 
 # b1 below 1 means demand is pulled back toward the average (a very high month is usually followed by a lower one).
 
 # %% Step 3. Look at the line
-fig, ax = plt.subplots(figsize=(6, 5))
+fig, ax = plt.subplots(figsize=(2.6, 2.3))
 ax.scatter(train["units_lag_1"], train["units"], s=8, alpha=0.4, label="real product-months")
 x = np.linspace(train["units_lag_1"].min(), train["units_lag_1"].max(), 50)
 ax.plot(x, b0 + b1 * x, c="red", lw=2, label="learned line")
@@ -64,13 +64,13 @@ show(results, "Test results 2025-2026 (lower MAE/RMSE/MAPE = better, higher R2 =
 # %% Step 6. Check the errors (residuals = real - predicted)
 pred = lr.predict(test[MONTH_FEATS])
 resid = test["units"] - pred
-fig, ax = plt.subplots(1, 2, figsize=(11, 4.5))
+fig, ax = plt.subplots(1, 2, figsize=(3.7, 2.3))
 ax[0].scatter(pred, test["units"], s=10, alpha=0.5)
 lim = [test["units"].min(), test["units"].max()]
 ax[0].plot(lim, lim, "r--", label="perfect prediction")
 ax[0].set_xlabel("predicted units"); ax[0].set_ylabel("real units"); ax[0].legend(); ax[0].set_title("Predicted vs real")
 ax[1].hist(resid, bins=40)
-ax[1].axvline(0, c="r"); ax[1].set_title(f"Errors: mean {resid.mean():.1f}, should be close to 0")
+ax[1].axvline(0, c="r"); ax[1].set_title(f"Errors (mean {resid.mean():.1f})")
 savefig(fig, "01_residuals.png")
 # Good signs: points close to the red line, errors centred on 0 with no long tail on one side.
 

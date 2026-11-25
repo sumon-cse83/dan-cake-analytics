@@ -107,15 +107,17 @@
 \pagenumbering{roman}
 \input{chapters/00_frontmatter.tex}
 
+\begingroup\singlespacing   % lists are single-spaced (standard practice)
 \tableofcontents
 \listoffigures
 \listoftables
+\endgroup
 \input{chapters/00_abbreviations.tex}
 \cleardoublepage
 \pagenumbering{arabic}
 
-% Six chapters. Everything (data dictionary, SQL, hyper-parameters, deployment
-% steps) lives inside Chapters 1-6; there are no separate appendices.
+% Six chapters, then the references, then Appendices A-D (data dictionary,
+% hyper-parameters, SQL queries, reproduction and deployment steps).
 \input{chapters/ch1_introduction.tex}
 \input{chapters/ch2_literature.tex}
 \input{chapters/ch3_methodology.tex}
@@ -125,8 +127,10 @@
 
 \renewcommand{\bibsection}{\chapter*{References}\addcontentsline{toc}{chapter}{References}\markboth{References}{References}}
 \bibliographystyle{plainnat}
-\begingroup\setstretch{1}\small\setlength{\bibsep}{3pt plus 1pt}
+\begingroup\setstretch{1}\small\setlength{\bibsep}{0.5pt plus 0.5pt}
 \bibliography{references}
 \endgroup
+
+\input{chapters/appendices.tex}
 
 \end{document}

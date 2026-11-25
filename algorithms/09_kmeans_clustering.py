@@ -69,9 +69,9 @@ for k in ks:
     inertia.append(km.inertia_)
     sil.append(silhouette_score(X, km.labels_))
 print("\n" + pd.DataFrame({"k": ks, "inertia": np.round(inertia, 1), "silhouette": np.round(sil, 3)}).to_string(index=False))
-fig, ax = plt.subplots(1, 2, figsize=(11, 4))
-ax[0].plot(ks, inertia, "o-"); ax[0].set_title("Elbow: look for the bend"); ax[0].set_xlabel("k"); ax[0].set_ylabel("inertia")
-ax[1].plot(ks, sil, "o-"); ax[1].set_title("Silhouette: higher = better separated"); ax[1].set_xlabel("k")
+fig, ax = plt.subplots(1, 2, figsize=(3.6, 2.15))
+ax[0].plot(ks, inertia, "o-"); ax[0].set_title("Elbow"); ax[0].set_xlabel("k"); ax[0].set_ylabel("inertia")
+ax[1].plot(ks, sil, "o-"); ax[1].set_title("Silhouette"); ax[1].set_xlabel("k")
 savefig(fig, "09_choose_k.png")
 # Silhouette for one product = (distance to the nearest OTHER cluster - distance inside its own) / the larger one.
 # Between -1 and 1. Above ~0.25 = some structure, above ~0.5 = clear groups.
@@ -97,16 +97,14 @@ for c in range(best_k):
 # %% Step 6. Picture: squeeze the columns into 2 with PCA to draw the clusters
 pca = PCA(n_components=2, random_state=SEED).fit(X)
 xy = pca.transform(X)
-fig, ax = plt.subplots(figsize=(7.5, 5.5))
-sc = ax.scatter(xy[:, 0], xy[:, 1], c=prof.cluster, cmap="tab10", s=70)
+fig, ax = plt.subplots(figsize=(2.7, 2.15))
+sc = ax.scatter(xy[:, 0], xy[:, 1], c=prof.cluster, cmap="tab10", s=18)
 cxy = pca.transform(km.cluster_centers_)
-ax.scatter(cxy[:, 0], cxy[:, 1], marker="X", s=250, c="black", label="centres")
-for pid, (a, b) in zip(prof.index, xy):
-    ax.annotate(pid, (a, b), fontsize=6, alpha=0.7)
-ax.legend(*sc.legend_elements(), title="cluster", loc="best")
-ax.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0]:.0%} of variation)")
-ax.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1]:.0%} of variation)")
-ax.set_title(f"K-Means product clusters (k={best_k})")
+ax.scatter(cxy[:, 0], cxy[:, 1], marker="X", s=80, c="black", label="centres")
+ax.legend(*sc.legend_elements(), title="cluster", loc="best", fontsize=6, title_fontsize=6)
+ax.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0]:.0%} of var.)")
+ax.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1]:.0%} of var.)")
+ax.set_title(f"Product clusters (k={best_k})")
 savefig(fig, "09_clusters.png")
 
 # %% Step 7. Use the model: which group does a BRAND-NEW product belong to?

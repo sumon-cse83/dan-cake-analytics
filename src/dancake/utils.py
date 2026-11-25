@@ -14,14 +14,21 @@ import pandas as pd  # noqa: E402
 from . import config as C  # noqa: E402
 
 plt.rcParams.update({
-    "figure.dpi": 110, "savefig.dpi": 200, "savefig.bbox": "tight",
-    "font.family": "DejaVu Sans", "font.size": 9.5, "axes.titlesize": 11, "axes.titleweight": "bold",
+    "figure.dpi": 110, "savefig.dpi": 300, "savefig.bbox": "tight",
+    "font.family": "DejaVu Sans", "font.size": 8.5, "axes.titlesize": 9.5, "axes.titleweight": "bold",
+    "axes.labelsize": 8.5, "xtick.labelsize": 8, "ytick.labelsize": 8, "legend.fontsize": 8,
     "axes.spines.top": False, "axes.spines.right": False, "axes.grid": True, "grid.alpha": .25,
     "axes.prop_cycle": matplotlib.cycler(color=C.PALETTE), "legend.frameon": False,
 })
 
 
 def savefig(fig, name: str):
+    """Save a report figure. Figures are drawn at about the size they are printed (7.2 in for a full-width
+    figure printed 5.9 in wide), so the fonts set above stay readable on paper."""
+    try:
+        fig.tight_layout()
+    except Exception:
+        pass
     fig.savefig(C.FIGURES / f"{name}.png")
     plt.close(fig)
 

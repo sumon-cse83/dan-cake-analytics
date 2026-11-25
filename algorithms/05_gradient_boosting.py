@@ -38,7 +38,7 @@ for i in range(1, 6):
 
 # %% Step 3. Learning rate x number of trees (tuned on 2024)
 # staged_predict gives the prediction after 1 tree, 2 trees, ... so one fit shows the whole curve.
-fig, ax = plt.subplots(figsize=(7.5, 4.5))
+fig, ax = plt.subplots(figsize=(4.7, 2.6))
 best = {"mae": np.inf}
 for rate in (0.3, 0.1, 0.03):
     gb = GradientBoostingRegressor(n_estimators=800, learning_rate=rate, max_depth=3, random_state=SEED)

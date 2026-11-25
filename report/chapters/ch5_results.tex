@@ -67,7 +67,7 @@ coefficient of variation of average daily sales across weekdays is only \DowCV\%
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{eda_seasonality}
-\caption{Seasonal index by month (left) and year $\times$ month heat map of net sales (right)}\label{fig:seasonality}
+\caption{Seasonal index by month (top) and year $\times$ month heat map of net sales (bottom)}\label{fig:seasonality}
 \end{figure}
 
 \subsection{Products and categories}
@@ -153,8 +153,8 @@ The forecasting panel contains \PanelSeries products observed monthly. There are
 (2020--2024) and \PanelTest test rows (January 2025 -- September 2026). Each model predicts
 $\log(1+\text{units})$, and the prediction is converted back to units. The log scale suits the multiplicative
 nature of demand and stops the largest products from dominating the fit. Seven algorithms were tuned by
-randomised search over the expanding-window folds described in \cref{ch:method}. \Cref{tab:hyper} in
-\Cref{tab:hyper} lists the selected hyper-parameters.
+randomised search over the expanding-window folds described in \cref{ch:method}. \Cref{app:hyper}
+lists the selected hyper-parameters.
 
 \subsubsection{One-step-ahead results}
 \Cref{tab:forecast} reports test performance when each month is forecast with the actual history up to the
@@ -254,7 +254,7 @@ regression, and KNN (\ClsKNNAUC) is weakest because distances become uninformati
 
 \begin{figure}[htbp]\centering
 \includegraphics[width=\linewidth]{ml_classification}
-\caption{ROC curves (left), confusion matrix of the best model (centre) and metric comparison (right) for large-order classification}\label{fig:classification}
+\caption{ROC curves of all classifiers (left) and confusion matrix of the best model (right) for large-order classification}\label{fig:classification}
 \end{figure}
 
 The XGBoost gain importance (\cref{fig:clsimp}) identifies the reason. The sales channel accounts for about
@@ -348,8 +348,7 @@ As the proposal required, models were selected on appropriate metrics \emph{and}
 accuracy alone. Where a simpler model performed as well as a complex one, as with logistic regression versus
 XGBoost for classification, the simpler and more interpretable model is preferred.
 
-\Cref{tab:hyper} lists the hyper-parameters selected by the expanding-window search.
-\input{tables/hyperparameters.tex}
+The hyper-parameters selected by the expanding-window search are listed in \cref{app:hyper}.
 
 \section{Algorithm-level study of nine machine-learning methods}\label{ch:algorithms}
 
@@ -447,8 +446,8 @@ deviation): the recent level of demand is the strongest predictor. The residual 
 is centred on zero with no strong pattern, so the linear form is adequate for this problem.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=.43\linewidth]{algo/01_simple_line}\hfill
-\includegraphics[width=.55\linewidth]{algo/01_residuals}
+\includegraphics[width=.40\linewidth]{algo/01_simple_line}\hfill
+\includegraphics[width=.585\linewidth]{algo/01_residuals}
 \caption{Linear regression: the learned line with one input (left); predicted versus actual units and the error distribution on the test period (right)}\label{fig:alglin}
 \end{figure}
 
@@ -480,8 +479,8 @@ chosen by maximising F1 on 2024, which selected \LogThreshold. On the test perio
 imbalanced classes.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=.36\linewidth]{algo/02_sigmoid}\hfill
-\includegraphics[width=.62\linewidth]{algo/02_confusion_roc}
+\includegraphics[width=.38\linewidth]{algo/02_sigmoid}\hfill
+\includegraphics[width=.60\linewidth]{algo/02_confusion_roc}
 \caption{Logistic regression: the sigmoid link (left); confusion matrix and ROC curve on the test period (right)}\label{fig:alglog}
 \end{figure}
 
@@ -498,7 +497,7 @@ regression the variance (squared error) is used, and each leaf predicts the mean
 
 \paragraph{Experiment.} A tree of depth two already reads like a business rule: \emph{if the channel and region
 usually place orders above about six units, expect a large order}. The depth was tuned on 2024
-(\cref{fig:algdt}, left). As the tree deepens, its ROC-AUC on the data it learned from keeps rising (to
+(\cref{fig:algdt}, top). As the tree deepens, its ROC-AUC on the data it learned from keeps rising (to
 \DTFitAUCDeep at depth 15), while the score on unseen 2024 orders peaks early and then falls (\DTValAUCDeep at
 depth 15). This is the textbook picture of \emph{overfitting}. The best depth was \DTBestDepth, with a test
 ROC-AUC of \AlgDTAUC. In the final tree \texttt{channel\_region\_avg\_qty} accounts for \DTTopShare of the
@@ -506,9 +505,9 @@ total impurity reduction. As a regressor for problem~A, a depth-5 tree reaches a
 than the baseline, but the weakest of the supervised regressors.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=.42\linewidth]{algo/03_depth_tuning}\hfill
-\includegraphics[width=.56\linewidth]{algo/03_tree}
-\caption{Decision tree: tuning the depth on 2024 (left); the top levels of the final tree (right)}\label{fig:algdt}
+\includegraphics[width=.63\linewidth]{algo/03_depth_tuning}\par\medskip
+\includegraphics[width=\linewidth]{algo/03_tree}
+\caption{Decision tree: tuning the depth on 2024 (top); the top levels of the final tree (bottom)}\label{fig:algdt}
 \end{figure}
 
 \paragraph{Assessment.} Trees are the most explainable non-linear model and need no scaling, but a single tree has
@@ -536,7 +535,7 @@ also give a range for each forecast, which is useful for safety stock. As a clas
 ROC-AUC \AlgRFAUC.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=.6\linewidth]{algo/04_n_trees}
+\includegraphics[width=.70\linewidth]{algo/04_n_trees}
 \caption{Random forest: validation error (2024) against the number of trees}\label{fig:algrf}
 \end{figure}
 
@@ -560,7 +559,7 @@ test MAE is \AlgGBMAE units ($R^2 = \AlgGBRtwo$), and the most important input i
 lowered to the training share of large orders. It then reaches ROC-AUC \AlgGBAUC.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=.65\linewidth]{algo/05_learning_rate}
+\includegraphics[width=.75\linewidth]{algo/05_learning_rate}
 \caption{Gradient boosting: validation error (2024) against the number of trees for three learning rates}\label{fig:alggb}
 \end{figure}
 
@@ -585,7 +584,7 @@ For problem~A early stopping selected \XGBRegTrees trees, and the regressor reac
 units ($R^2 = \AlgXGBRtwo$).
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=.65\linewidth]{algo/06_early_stopping}
+\includegraphics[width=.70\linewidth]{algo/06_early_stopping}
 \caption{XGBoost: ROC-AUC on the training and validation years as trees are added, with the early-stopping point}\label{fig:algxgb}
 \end{figure}
 
@@ -614,7 +613,7 @@ classes overlap heavily. For problem~A the \SVRBest is better and reaches an MAE
 ($R^2 = \AlgSVMRtwo$).
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=.6\linewidth]{algo/07_svm_tuning}
+\includegraphics[width=.70\linewidth]{algo/07_svm_tuning}
 \caption{Support vector machine: validation ROC-AUC (2024) for combinations of $C$ and $\gamma$}\label{fig:algsvm}
 \end{figure}
 
@@ -639,7 +638,7 @@ were large in \emph{x} out of $k$ cases''. For problem~A, $k=\KNNRegK$ distance-
 of \AlgKNNMAE units.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=.6\linewidth]{algo/08_choose_k}
+\includegraphics[width=.70\linewidth]{algo/08_choose_k}
 \caption{$k$-nearest neighbours: ROC-AUC on the learned data and on 2024 for different $k$}\label{fig:algknn}
 \end{figure}
 
@@ -666,8 +665,8 @@ strategy-oriented segmentation. The fitted model can place a new product into a 
 profile, so planners can treat it like similar existing products.
 
 \begin{figure}[htbp]\centering
-\includegraphics[width=.55\linewidth]{algo/09_choose_k}\hfill
-\includegraphics[width=.43\linewidth]{algo/09_clusters}
+\includegraphics[width=.57\linewidth]{algo/09_choose_k}\hfill
+\includegraphics[width=.42\linewidth]{algo/09_clusters}
 \caption{$K$-means: elbow and silhouette for $K = 2,\dots,8$ (left); products and cluster centres on the first two principal components (right)}\label{fig:algkm}
 \end{figure}
 
@@ -872,10 +871,7 @@ Order size depends on channel, not customer type & Context-specific evidence for
 \end{table}
 
 \section{Chapter summary}
-The exploratory analysis showed price-led growth, strong year-end seasonality, high geographical and portfolio
-concentration, and no measurable effect of discounts. The production models forecast product demand with a
-WAPE of \BestRegWAPE\%, \GainVsSNaive\% better than the seasonal-naive rule, while Holt--Winters forecast
-company totals with a MAPE of \HWMAPE\%. Large orders were moderately predictable, and segmentation and anomaly
-detection added portfolio, market and control perspectives. The algorithm-level study confirmed these results
-with independent code. Four of the seven hypotheses were supported, all seven research questions were answered,
-and the findings were consistent with, or extended, the literature. \Cref{ch:conclusion} draws the conclusions.
+Growth was price-led, seasonality strong and sales concentrated, while discounts had no measurable effect.
+Product demand was forecast with a WAPE of \BestRegWAPE\% (\GainVsSNaive\% better than the seasonal-naive rule)
+and company units with a Holt--Winters MAPE of \HWMAPE\%. The algorithm-level study confirmed these results
+independently; four of seven hypotheses were supported and all research questions answered.

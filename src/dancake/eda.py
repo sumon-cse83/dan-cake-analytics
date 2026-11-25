@@ -59,7 +59,7 @@ def run(d: pd.DataFrame) -> dict:
 
     # ------------------------------------------------------------ Fig: monthly trend
     m = d.groupby("ym").agg(net=("Net_Sales_BDT", "sum"), units=("Quantity", "sum"))
-    fig, ax = plt.subplots(2, 1, figsize=(9, 5.6), sharex=True, gridspec_kw={"height_ratios": [2, 1]})
+    fig, ax = plt.subplots(2, 1, figsize=(7.0, 4.6), sharex=True, gridspec_kw={"height_ratios": [2, 1]})
     ax[0].plot(m.index, m.net / 1e6, color=C.PRIMARY, lw=1.4, label="Monthly net sales")
     ax[0].plot(m.index, (m.net / 1e6).rolling(12).mean(), color=C.ACCENT, lw=2, label="12-month moving average")
     ax[0].set_ylabel("BDT million"); ax[0].set_title("Monthly net sales, Jan 2020 - Sep 2026"); ax[0].legend()
@@ -87,19 +87,19 @@ def run(d: pd.DataFrame) -> dict:
     kw = stats.kruskal(*[g.detr.values for _, g in daily.groupby("month")])
     out["kw_month_daily_H"], out["kw_month_daily_p"] = float(kw.statistic), float(kw.pvalue)
     heat = dm.pivot(index="Year", columns="Month", values="net") / 1e6
-    fig, ax = plt.subplots(1, 2, figsize=(11, 3.8), gridspec_kw={"width_ratios": [1.1, 1]})
+    fig, ax = plt.subplots(2, 1, figsize=(7.2, 5.2), gridspec_kw={"height_ratios": [1, 1.1]})
     ax[0].bar(MONTHS, seas_total.values, color=[C.ACCENT if v == seas_total.max() else C.PRIMARY for v in seas_total.values])
     ax[0].plot(MONTHS, seas.values, "o-", color=C.PALETTE[2], lw=1.5, label="per-day index")
     ax[0].axhline(100, color="grey", lw=.8, ls="--")
-    ax[0].set_ylim(80, max(130, seas_total.max() + 3)); ax[0].set_title("Seasonal index (year average = 100)"); ax[0].legend(["per-day index"], loc="upper left")
+    ax[0].set_ylim(80, max(130, seas_total.max() + 3)); ax[0].set_title("Seasonal index by month (year average = 100)"); ax[0].legend(["per-day index"], loc="upper left")
     im = ax[1].imshow(heat.values, aspect="auto", cmap="Blues")
-    ax[1].set_xticks(range(12), MONTHS, fontsize=7.5); ax[1].set_yticks(range(len(heat)), heat.index)
-    ax[1].grid(False); ax[1].set_title("Net sales heat map (BDT M)")
+    ax[1].set_xticks(range(12), MONTHS); ax[1].set_yticks(range(len(heat)), heat.index)
+    ax[1].grid(False); ax[1].set_title("Net sales by year and month (BDT million)")
     for i in range(heat.shape[0]):
         for j in range(heat.shape[1]):
-            ax[1].text(j, i, f"{heat.values[i, j]:.1f}", ha="center", va="center", fontsize=6.5,
+            ax[1].text(j, i, f"{heat.values[i, j]:.1f}", ha="center", va="center", fontsize=8,
                        color="white" if heat.values[i, j] > heat.values.mean() else "black")
-    fig.colorbar(im, ax=ax[1], shrink=.8)
+    fig.colorbar(im, ax=ax[1], shrink=.9, pad=.01)
     savefig(fig, "eda_seasonality")
 
     # ------------------------------------------------------------ day of week
@@ -140,16 +140,16 @@ def run(d: pd.DataFrame) -> dict:
     to_latex_table(tt, "top_products", "Top ten products by net sales (Pareto/ABC analysis)", "tab:topproducts",
                    fmt={"Net sales (BDT M)": "{:,.2f}", "Cumulative share %": "{:.1f}"})
 
-    fig, ax = plt.subplots(1, 2, figsize=(11, 4))
+    fig, ax = plt.subplots(1, 2, figsize=(7.2, 3.1))
     cs = cat_share.sort_values()
     ax[0].barh(cs.index, cs.values, color=C.PRIMARY)
     for i, v in enumerate(cs.values):
         ax[0].text(v + .3, i, f"{v:.1f}%", va="center", fontsize=7.5)
-    ax[0].set_title("Share of net sales by category"); ax[0].set_xlabel("% of total")
+    ax[0].set_title("Share of net sales by category"); ax[0].set_xlim(0, cs.max() * 1.22); ax[0].set_xlabel("% of total")
     ax[1].bar(range(len(prod)), prod.Net_Sales_BDT / 1e6, color=prod.ABC.map({"A": C.PRIMARY, "B": C.ACCENT, "C": "#999999"}))
     ax2 = ax[1].twinx(); ax2.plot(range(len(prod)), prod.cum_share, color="black", lw=1.3); ax2.set_ylim(0, 102)
     ax2.axhline(80, ls="--", color="grey", lw=.8); ax2.grid(False); ax2.set_ylabel("Cumulative %")
-    ax[1].set_title(f"Pareto curve of {len(prod)} products (A={abc.get('A', 0)}, B={abc.get('B', 0)}, C={abc.get('C', 0)})")
+    ax[1].set_title(f"Pareto curve (A={abc.get('A', 0)}, B={abc.get('B', 0)}, C={abc.get('C', 0)} products)")
     ax[1].set_xlabel("Products ranked by net sales"); ax[1].set_ylabel("BDT million")
     savefig(fig, "eda_category_pareto")
 
@@ -179,18 +179,19 @@ def run(d: pd.DataFrame) -> dict:
     rc = d.pivot_table(index="Region", columns="Channel", values="Net_Sales_BDT", aggfunc="sum", observed=True) / 1e6
     rc = rc.loc[reg.index]
     rq = d.pivot_table(index="Region", columns="Channel", values="Quantity", aggfunc="mean", observed=True).loc[reg.index]
-    fig, ax = plt.subplots(1, 2, figsize=(11, 4.4))
-    for a, data, title, f in [(ax[0], rc, "Net sales by region x channel (BDT M)", "{:.1f}"),
-                              (ax[1], rq, "Mean units per order by region x channel", "{:.1f}")]:
+    fig, ax = plt.subplots(1, 2, figsize=(7.2, 3.3))
+    short = {"Distributor": "Distrib.", "E-commerce": "E-com.", "General Trade": "General\nTrade",
+             "Modern Trade": "Modern\nTrade"}
+    for a, data, title, f in [(ax[0], rc, "Net sales (BDT million)", "{:.1f}"),
+                              (ax[1], rq, "Mean units per order", "{:.1f}")]:
         im = a.imshow(data.values, cmap="YlOrBr", aspect="auto")
-        a.set_xticks(range(data.shape[1]), data.columns, rotation=20, fontsize=8)
-        a.set_yticks(range(data.shape[0]), data.index, fontsize=8); a.grid(False); a.set_title(title)
+        a.set_xticks(range(data.shape[1]), [short.get(c, c) for c in data.columns])
+        a.set_yticks(range(data.shape[0]), data.index); a.grid(False); a.set_title(title)
         for i in range(data.shape[0]):
             for j in range(data.shape[1]):
                 v = data.values[i, j]
-                a.text(j, i, f.format(v), ha="center", va="center", fontsize=7,
+                a.text(j, i, f.format(v), ha="center", va="center", fontsize=8,
                        color="white" if v > data.values.min() + .65 * (data.values.max() - data.values.min()) else "black")
-        fig.colorbar(im, ax=a, shrink=.8)
     savefig(fig, "eda_region_channel")
 
     # Statistical tests on order size
@@ -222,7 +223,7 @@ def run(d: pd.DataFrame) -> dict:
     out["large_order_rate"] = float(large.mean())
 
     # ------------------------------------------------------------ distributions & correlation
-    fig, ax = plt.subplots(1, 3, figsize=(11, 3.4))
+    fig, ax = plt.subplots(1, 3, figsize=(7.2, 2.8))
     ax[0].hist(d.Quantity, bins=np.arange(0.5, 60.5, 1), color=C.PRIMARY)
     ax[0].set_title("Units per order"); ax[0].set_xlabel("units (truncated at 60)")
     ax[1].hist(np.log10(d.Net_Sales_BDT), bins=60, color=C.ACCENT)
@@ -236,7 +237,7 @@ def run(d: pd.DataFrame) -> dict:
 
     num = ["Quantity", "Unit_Selling_Price_BDT", "List_Price_BDT", "Discount_%", "Net_Sales_BDT", "Product_Launch_Year", "Month"]
     corr = d[num].corr(method="spearman")
-    fig, ax = plt.subplots(figsize=(6.2, 5))
+    fig, ax = plt.subplots(figsize=(4.4, 3.7))
     im = ax.imshow(corr.values, cmap="RdBu_r", vmin=-1, vmax=1)
     labels = ["Units", "Unit price", "List price", "Discount %", "Net sales", "Launch yr", "Month"]
     ax.set_xticks(range(len(num)), labels, rotation=40, ha="right"); ax.set_yticks(range(len(num)), labels); ax.grid(False)
@@ -282,7 +283,7 @@ def run(d: pd.DataFrame) -> dict:
     out["elasticity_p"] = float(mod.pvalues["log_price"])
     out["elasticity_r2"] = float(mod.rsquared)
 
-    fig, ax = plt.subplots(1, 2, figsize=(11, 3.6))
+    fig, ax = plt.subplots(1, 2, figsize=(7.2, 3.0))
     ax[0].bar(pv.Year - .2, pv["Volume growth %"], .4, label="volume", color=C.PRIMARY)
     ax[0].bar(pv.Year + .2, pv["Avg price growth %"], .4, label="price", color=C.ACCENT)
     ax[0].plot(pv.Year, pv["Sales growth %"], "ko-", label="sales")
@@ -292,7 +293,7 @@ def run(d: pd.DataFrame) -> dict:
     ax[1].plot(lp.index, lp.price / lp.price.iloc[:12].mean() * 100, label="list price index", color=C.ACCENT)
     ax[1].plot(base_units.index, base_units.rolling(12).mean() / base_units.iloc[:12].mean() * 100,
                label="units (12-m avg) index", color=C.PRIMARY)
-    ax[1].set_title("Price and volume indices (2020 = 100)"); ax[1].legend()
+    ax[1].set_title("Price and volume index (2020 = 100)"); ax[1].legend()
     savefig(fig, "eda_price_volume")
 
     # ------------------------------------------------------------ product launches / lifecycle

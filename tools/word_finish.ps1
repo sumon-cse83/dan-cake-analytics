@@ -65,25 +65,25 @@ try {
     }
 
     # ---- styles
-    Set-Style $d (-1)  @{ size = 12; align = 3; before = 0; after = 6; single = $false }            # Normal
+    Set-Style $d (-1)  @{ size = 12; align = 3; before = 0; after = 3; single = $false }            # Normal
     Set-Style $d (-2)  @{ size = 16; bold = $true; align = 1; before = 0; after = 18; single = $true; keep = $true; pagebreak = $true }
     Set-Style $d (-3)  @{ size = 14; bold = $true; align = 0; before = 18; after = 6; single = $true; keep = $true }
     Set-Style $d (-4)  @{ size = 12; bold = $true; align = 0; before = 12; after = 6; single = $true; keep = $true }
     Set-Style $d (-5)  @{ size = 12; bold = $true; italic = $true; align = 0; before = 10; after = 4; single = $true; keep = $true }
-    Set-Style $d (-20) @{ size = 12; bold = $true; before = 6; after = 2; single = $true; align = 0 }   # TOC 1
-    Set-Style $d (-21) @{ size = 12; before = 0; after = 2; single = $true; left = 18; align = 0 }       # TOC 2
-    Set-Style $d (-22) @{ size = 11; before = 0; after = 1; single = $true; left = 36; align = 0 }       # TOC 3
+    Set-Style $d (-20) @{ size = 12; bold = $true; before = 6; after = 1; single = $true; align = 0 }   # TOC 1
+    Set-Style $d (-21) @{ size = 12; before = 0; after = 0; single = $true; left = 18; align = 0 }       # TOC 2
+    Set-Style $d (-22) @{ size = 11; before = 0; after = 0; single = $true; left = 36; align = 0 }       # TOC 3
     Set-Style $d (-32) @{ size = 10; italic = $true }                                               # Header
     Set-Style $d (-33) @{ size = 11 }                                                               # Footer
-    Set-Style $d 'figurecaption'  @{ size = 11; align = 1; before = 2; after = 12; single = $true }
-    Set-Style $d 'tablecaption'   @{ size = 11; align = 1; before = 10; after = 4; single = $true; keep = $true }
-    Set-Style $d 'listingcaption' @{ size = 11; align = 1; before = 10; after = 4; single = $true; keep = $true }
-    Set-Style $d 'figureimage'    @{ size = 11; align = 1; before = 6; after = 2; single = $true; keep = $true }
+    Set-Style $d 'figurecaption'  @{ size = 11; align = 1; before = 2; after = 8; single = $true }
+    Set-Style $d 'tablecaption'   @{ size = 11; align = 1; before = 6; after = 4; single = $true; keep = $true }
+    Set-Style $d 'listingcaption' @{ size = 11; align = 1; before = 6; after = 4; single = $true; keep = $true }
+    Set-Style $d 'figureimage'    @{ size = 11; align = 1; before = 4; after = 2; single = $true; keep = $true }
     Set-Style $d 'equation'       @{ align = 1; before = 4; after = 6; single = $true }
     Set-Style $d 'tabletext'      @{ size = 10; align = 0; before = 0; after = 0; single = $true }
     Set-Style $d 'tablenote'      @{ size = 10; align = 0; before = 3; after = 10; single = $true }
-    Set-Style $d 'labelitem'      @{ size = 12; align = 3; before = 0; after = 3; left = 36; first = -36; single = $false }
-    Set-Style $d 'reference'      @{ size = 11; align = 0; before = 0; after = 4; left = 18; first = -18; single = $true }
+    Set-Style $d 'labelitem'      @{ size = 12; align = 3; before = 0; after = 1; left = 36; first = -36; single = $false }
+    Set-Style $d 'reference'      @{ size = 11; align = 0; before = 0; after = 1.5; left = 18; first = -18; single = $true }
     Set-Style $d 'codeblock'      @{ font = 'Consolas'; size = 8.5; align = 0; before = 0; after = 0; single = $true }
     Set-Style $d 'codeinline'     @{ font = 'Consolas'; size = 10.5 }
     Set-Style $d 'frontheading'   @{ size = 16; bold = $true; align = 1; before = 0; after = 18; single = $true; pagebreak = $true }
@@ -107,7 +107,7 @@ try {
     # the lists use level 9 so that their entries get the plain "TOC 9" style instead of bold "TOC 1"
     Replace-WithField $d '[[listoffigures]]' 'TOC \h \z \t "figurecaption,9"'
     Replace-WithField $d '[[listoftables]]' 'TOC \h \z \t "tablecaption,9"'
-    Set-Style $d (-28) @{ size = 11; bold = $false; before = 0; after = 3; single = $true; left = 0; align = 0 }
+    Set-Style $d (-28) @{ size = 11; bold = $false; before = 0; after = 1; single = $true; left = 0; align = 0 }
 
     # ---- section break before Chapter 1: roman page numbers before it, arabic from it
     $r = $d.Content

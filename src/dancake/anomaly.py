@@ -89,7 +89,7 @@ def run(d: pd.DataFrame) -> dict:
     out["top_days"] = t.to_dict("records")
     day.reset_index().to_parquet(C.DASHBOARD_DATA / "daily_anomalies.parquet", index=False)
 
-    fig, ax = plt.subplots(figsize=(10, 3.6))
+    fig, ax = plt.subplots(figsize=(7.2, 3.0))
     ax.plot(day.index, day.net / 1e3, lw=.5, color="#9DB4CC", label="daily net sales")
     ax.plot(day.index, day.expected / 1e3, lw=1.2, color=C.PRIMARY, label="expected (trend x season)")
     f = day[day.flag == 1]

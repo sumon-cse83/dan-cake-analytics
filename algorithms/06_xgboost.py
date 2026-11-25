@@ -44,7 +44,7 @@ xgb.fit(s["fit"][ORDER_FEATS], s["fit"]["large_order"],
 best_n = xgb.best_iteration + 1
 print(f"\nbest number of trees on 2024: {best_n}  (AUC {xgb.best_score:.3f})")
 hist = xgb.evals_result()
-fig, ax = plt.subplots(figsize=(7.5, 4.5))
+fig, ax = plt.subplots(figsize=(4.4, 2.5))
 ax.plot(hist["validation_0"]["auc"], label="data it learned from (2020-23)")
 ax.plot(hist["validation_1"]["auc"], label="unseen data (2024)")
 ax.axvline(best_n - 1, ls="--", c="grey", label="early stopping point")

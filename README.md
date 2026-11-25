@@ -79,8 +79,10 @@ See [guides/DEPLOYMENT.md](guides/DEPLOYMENT.md): dashboard on **Streamlit Commu
 See [guides/LATEX.md](guides/LATEX.md). Upload the `report/` folder (plus `sql/`) to Overleaf, or compile locally
 with `pdflatex → bibtex → pdflatex ×2`. Edit your name, ID, supervisor and university at the top of `report/main.tex`.
 
-The final report is organised in **six chapters**, with no separate appendices (96 pages in total, within the
-100-page limit: 12 front-matter pages, 80 pages of chapters and 4 pages of references). It cites **70 references, including 44 textbooks**, and no
+The final report is organised in **six chapters followed by four appendices** (A data dictionary, B tuned
+hyper-parameters, C example SQL queries, D reproducing and deploying the project), within the 100-page limit.
+Every chart is drawn at the size at which it is printed, so its labels stay readable on paper, and each
+dashboard page is shown as its own full-width screenshot. It cites **70 references, including 44 textbooks**, and no
 single source supplies more than about 3% of the citations. The layout follows the usual university format:
 A4 paper, Times New Roman 12 pt, 1.5 line spacing for the text (single spacing in tables and references), a
 3.5 cm binding margin and 2.5 cm on the other sides.
@@ -89,15 +91,16 @@ A4 paper, Times New Roman 12 pt, 1.5 line spacing for the text (single spacing i
 |---|---|
 | 1 Introduction | context, motivation, problem, aim and objectives, research questions, hypotheses H1–H7, significance, scope |
 | 2 Literature Review | analytics, preprocessing, forecasting, ML, dashboards, engineering of ML systems, conceptual framework, research gap, 44 textbooks |
-| 3 Research Methodology | research philosophy and design, data and data dictionary, preprocessing, features, evaluation design, statistics, validity, ethics |
-| 4 System Design and Implementation | requirements, architecture, module design, star schema and SQL, dashboard (9 screenshots), deployment, testing, reproduction |
+| 3 Research Methodology | research philosophy and design, data, preprocessing, features, evaluation design, statistics, validity, ethics |
+| 4 System Design and Implementation | requirements, architecture, module design, star schema, dashboard (9 full-width screenshots), deployment, testing |
 | 5 Results, Evaluation and Discussion | EDA, production models, algorithm-level study of 9 methods, insights, system evaluation, hypothesis decisions, research questions, comparison with the literature |
 | 6 Conclusion | summary, objectives achieved, recommendations, contributions, limitations, future work |
+| Appendices A–D | data dictionary, tuned hyper-parameters, example SQL queries, reproducing and deploying the project |
 
 ### Microsoft Word version
 
 The same report is also available as an editable Word document: `report/main.docx` (a copy is in
-`docs/report.docx`, 99 pages, same chapters, figures, tables and references). It is generated from the LaTeX source,
+`docs/report.docx`, with the same chapters, appendices, figures, tables and references). It is generated from the LaTeX source,
 so both versions always agree. It has real Word heading styles, an automatic table of contents, lists of figures
 and tables, roman page numbers for the front matter and arabic numbers from Chapter 1. Equations and diagrams are
 inserted as high-resolution pictures; everything else (text, tables, lists, captions, code) is editable. To

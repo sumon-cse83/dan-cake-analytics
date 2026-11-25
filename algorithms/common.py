@@ -14,7 +14,13 @@ Two prediction problems are used in the lessons:
 import json
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
+
+# charts are drawn at the size they are printed in the report, so 7.5 pt here is 7.5 pt on paper
+plt.rcParams.update({"font.size": 7.5, "axes.titlesize": 8, "axes.titleweight": "bold",
+                     "axes.labelsize": 7.5, "xtick.labelsize": 7, "ytick.labelsize": 7,
+                     "legend.fontsize": 6.5, "lines.markersize": 4})
 import pandas as pd
 from sklearn.metrics import (accuracy_score, f1_score, mean_absolute_error, mean_squared_error,
                              precision_score, r2_score, recall_score, roc_auc_score)
@@ -121,7 +127,7 @@ def show(results: dict, title: str):
 
 def savefig(fig, name):
     fig.tight_layout()
-    fig.savefig(OUT / name, dpi=110)
+    fig.savefig(OUT / name, dpi=300)
     print("Saved chart: algorithms/outputs/" + name)
 
 

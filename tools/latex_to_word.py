@@ -168,6 +168,8 @@ class Converter:
         self.snippets: list[tuple[str, str]] = []        # (kind, latex)
         self.listings: list[tuple[str | None, str]] = []
         self.chap = 0
+        self.chap_label = '0'          # '1', '2', ... for chapters, 'A', 'B', ... after \appendix
+        self.appendix = False
         self.counters = {'section': 0, 'subsection': 0, 'subsubsection': 0}
         self.floatn = {'Figure': 0, 'Table': 0, 'Listing': 0}
         self.float_kind: str | None = None
@@ -208,9 +210,12 @@ class Converter:
 
         def lstin(m):
             code = (REPORT / m.group(2)).read_text(encoding='utf8')
+            first = re.search(r'firstline=(\d+)', m.group(1))
+            if first:
+                code = '\n'.join(code.split('\n')[int(first.group(1)) - 1:])
             self.listings.append((m.group(1), code.strip('\n')))
             return f'\x00LST{len(self.listings) - 1}\x00'
-        s = re.sub(r'\\lstinputlisting\[(.*?)\]\{([^}]+)\}', lstin, s)
+        s = re.sub(r'\\lstinputlisting\[(.*?)\]\{([^}]+)\}', lstin, s, flags=re.S)
         return s
 
     def protect_snippets(self, s: str) -> str:
@@ -453,6 +458,9 @@ class Converter:
             return gobble(i) if name not in ('newblock',) else i
         if name in ignore0:
             return gobble(i)
+        if name == 'appendix':           # chapters that follow are Appendix A, B, ...
+            self.appendix, self.chap = True, 0
+            return gobble(i)
         if name == 'penalty':
             return re.match(r'-?\d*', s[i:]).end() + i
         if name in switches:
@@ -513,7 +521,7 @@ class Converter:
             out.append(f'({num})' if name == 'eqref' else num)
             return i
         if name in ('label', 'pageref', 'hspace', 'vspace', 'color', 'pagestyle', 'thispagestyle',
-                    'addcontentsline', 'markboth', 'setlength', 'phantomsection'):
+                    'addcontentsline', 'markboth', 'setlength', 'phantomsection', 'setstretch'):
             n_args = {'addcontentsline': 3, 'markboth': 2, 'setlength': 2}.get(name, 1)
             for _ in range(n_args):
                 _, i = read_arg(s, i)
@@ -677,7 +685,7 @@ class Converter:
             cap = re.search(r'caption=\{(.*?)\}', opts or '')
             if cap:
                 self.floatn['Listing'] += 1
-                no = f'{self.chap}.{self.floatn["Listing"]}'
+                no = f'{self.chap_label}.{self.floatn["Listing"]}'
                 lab = re.search(r'label=\{(.*?)\}', opts or '')
                 self.check_label(lab.group(1) if lab else None, no)
                 parts.append(f'<p class=ListingCaption><b>Listing {no}:</b> {self.inline(cap.group(1))}</p>')
@@ -800,20 +808,21 @@ class Converter:
             self.chap += 1
             self.counters = dict.fromkeys(self.counters, 0)
             self.floatn = dict.fromkeys(self.floatn, 0)
-            no = str(self.chap)
+            no = chr(64 + self.chap) if self.appendix else str(self.chap)
+            self.chap_label = no
             self.check_label(key, no)
-            return f'<h1>Chapter {no}: {t}</h1>'
+            return f'<h1>{"Appendix" if self.appendix else "Chapter"} {no}: {t}</h1>'
         if level == 'section':
             self.counters.update(section=self.counters['section'] + 1, subsection=0, subsubsection=0)
-            no = f'{self.chap}.{self.counters["section"]}'
+            no = f'{self.chap_label}.{self.counters["section"]}'
             tag = 'h2'
         elif level == 'subsection':
             self.counters.update(subsection=self.counters['subsection'] + 1, subsubsection=0)
-            no = f'{self.chap}.{self.counters["section"]}.{self.counters["subsection"]}'
+            no = f'{self.chap_label}.{self.counters["section"]}.{self.counters["subsection"]}'
             tag = 'h3'
         else:
             self.counters['subsubsection'] += 1
-            no = f'{self.chap}.{self.counters["section"]}.{self.counters["subsection"]}.' \
+            no = f'{self.chap_label}.{self.counters["section"]}.{self.counters["subsection"]}.' \
                  f'{self.counters["subsubsection"]}'
             tag = 'h4'
         self.check_label(key, no)
@@ -822,7 +831,7 @@ class Converter:
     def caption(self, text: str, key: str | None) -> str:
         kind = self.float_kind or 'Figure'
         self.floatn[kind] += 1
-        no = f'{self.chap}.{self.floatn[kind]}'
+        no = f'{self.chap_label}.{self.floatn[kind]}'
         self.check_label(key, no)
         return f'<p class={kind}Caption><b>{kind} {no}:</b> {self.inline(text)}</p>'
 
@@ -1015,7 +1024,7 @@ class Converter:
                 inner = self.inline(txt)
                 if '\\ttfamily' in pre:
                     inner = f'<span class=CodeInline>{inner}</span>'
-                css = ['padding:1.5pt 4pt', 'vertical-align:top']
+                css = ['padding:0.5pt 4pt', 'vertical-align:top']
                 if rule:
                     css.append(f'border-top:solid windowtext {widths[rule]}')
                 if ri == header_rows - 1 and header_rows:

@@ -180,21 +180,23 @@ def run(d: pd.DataFrame) -> dict:
                    note="Higher silhouette and Calinski--Harabasz and lower Davies--Bouldin values indicate better-separated clusters.")
 
     # ======================================================== figures
-    fig, ax = plt.subplots(1, 3, figsize=(13, 3.9))
+    fig, ax = plt.subplots(1, 3, figsize=(7.4, 3.6))
     ax[0].plot(km_sel.index, km_sel.Silhouette, "o-", label="products"); ax[0].plot(ks_sel.index, ks_sel.Silhouette, "s-", label="market cells")
     ax[0].axvline(k, color=C.PALETTE[0], ls=":", lw=.8); ax[0].axvline(k2, color=C.PALETTE[1], ls=":", lw=.8)
-    ax[0].set_title("K-Means silhouette by k"); ax[0].set_xlabel("k"); ax[0].legend()
+    ax[0].set_title("Silhouette by k"); ax[0].set_xlabel("k"); ax[0].legend(fontsize=7)
     pcs = PCA(2, random_state=C.SEED).fit(X); P = pcs.transform(X)
     for i, s in enumerate(prof.segment.unique()):
         mk = (prof.segment == s).values
         ax[1].scatter(P[mk, 0], P[mk, 1], s=30, label=s, color=C.PALETTE[i])
-    ax[1].set_title(f"Products in PCA space ({pcs.explained_variance_ratio_.sum():.0%} var.)"); ax[1].legend(fontsize=6.5)
+    ax[1].set_title(f"Products (PCA, {pcs.explained_variance_ratio_.sum():.0%} var.)")
+    ax[1].legend(fontsize=7, loc="upper center", bbox_to_anchor=(0.5, -0.2), frameon=False)
     ax[1].set_xlabel("PC1"); ax[1].set_ylabel("PC2")
     Ps = PCA(2, random_state=C.SEED).fit_transform(Xs)
     for i, s in enumerate(sp.segment.unique()):
         mk = (sp.segment == s).values
         ax[2].scatter(Ps[mk, 0], Ps[mk, 1], s=14, label=s, color=C.PALETTE[i + 4])
-    ax[2].set_title("Market cells in PCA space"); ax[2].legend(fontsize=6.5); ax[2].set_xlabel("PC1")
+    ax[2].set_title("Market cells (PCA)"); ax[2].set_xlabel("PC1")
+    ax[2].legend(fontsize=7, loc="upper center", bbox_to_anchor=(0.5, -0.2), frameon=False)
     savefig(fig, "ml_clustering")
 
     save_json(out, "clustering")

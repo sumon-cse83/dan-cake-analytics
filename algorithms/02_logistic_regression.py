@@ -29,10 +29,10 @@ print("share of large orders: train", round(train.large_order.mean(), 3), "| tes
 
 # %% Step 2. The sigmoid curve: how a score becomes a probability
 z = np.linspace(-6, 6, 100)
-fig, ax = plt.subplots(figsize=(6, 4))
+fig, ax = plt.subplots(figsize=(2.4, 2.15))
 ax.plot(z, 1 / (1 + np.exp(-z)))
 ax.axhline(0.5, ls="--", c="grey"); ax.set_xlabel("z = b0 + b1*x1 + ..."); ax.set_ylabel("probability of 'large'")
-ax.set_title("Sigmoid: any score -> a value between 0 and 1")
+ax.set_title("Sigmoid function")
 savefig(fig, "02_sigmoid.png")
 
 # %% Step 3. One input: the average order size of the channel x region
@@ -78,12 +78,13 @@ show(results, "Test results 2025-2026 (higher = better):")
 # Lower threshold -> catch more large orders (recall up) but more false alarms (precision down). It is a business choice.
 
 # %% Step 7. Pictures: confusion matrix and ROC curve
-fig, ax = plt.subplots(1, 2, figsize=(11, 4.5))
+fig, ax = plt.subplots(1, 2, figsize=(3.9, 2.2))
 ConfusionMatrixDisplay.from_predictions(test.large_order, (prob >= best_t).astype(int),
                                         display_labels=["small", "large"], ax=ax[0], colorbar=False)
-ax[0].set_title(f"Confusion matrix (threshold {best_t:.2f})")
-RocCurveDisplay.from_predictions(test.large_order, prob, ax=ax[1], name="Logistic Regression")
-ax[1].plot([0, 1], [0, 1], "k--", label="guessing"); ax[1].legend(); ax[1].set_title("ROC curve")
+ax[0].set_title(f"Confusion (t = {best_t:.2f})"); ax[0].set_xlabel("predicted"); ax[0].set_ylabel("actual")
+RocCurveDisplay.from_predictions(test.large_order, prob, ax=ax[1], name="model")
+ax[1].plot([0, 1], [0, 1], "k--", label="guessing"); ax[1].legend(fontsize=6, loc="lower right")
+ax[1].set_title("ROC curve"); ax[1].set_xlabel("false positive rate"); ax[1].set_ylabel("true positive rate")
 savefig(fig, "02_confusion_roc.png")
 # Confusion matrix rows = truth, columns = prediction. Diagonal = correct answers.
 

@@ -143,7 +143,8 @@ def hyperparameter_table():
     rows = [{"Model": m, "Selected hyper-parameters": ", ".join(f"{k}={v}" for k, v in sorted(p.items())) or "none (closed form)"}
             for m, p in tp.items()]
     to_latex_table(pd.DataFrame(rows), "hyperparameters", "Hyper-parameters selected by randomised search with "
-                   "expanding-window validation (demand forecasting)", "tab:hyper", col_align="lp{10cm}", font=r"\footnotesize")
+                   "expanding-window validation (demand forecasting)", "tab:hyper", col_align=r"l>{\raggedright\arraybackslash}p{10cm}",
+                   font=r"\footnotesize")
 
 
 def run(d: pd.DataFrame):

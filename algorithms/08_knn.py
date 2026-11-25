@@ -50,7 +50,7 @@ best_k = int(tune.loc[tune.AUC_2024.idxmax(), "k"])
 print("best k:", best_k)
 # If the best k is the LAST value tried, the score might still improve with a larger k - try a longer list.
 # Here a very large k works best: order size is mostly noise, so averaging over many neighbours helps.
-fig, ax = plt.subplots(figsize=(7, 4.5))
+fig, ax = plt.subplots(figsize=(4.4, 2.5))
 ax.plot(tune.k, tune.AUC_learned_data, "o-", label="data it learned from (2020-23)")
 ax.plot(tune.k, tune.AUC_2024, "o-", label="unseen data (2024)")
 ax.set_xscale("log"); ax.axvline(best_k, ls="--", c="grey")
